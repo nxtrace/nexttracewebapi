@@ -18,7 +18,7 @@
 
         socket.on('nexttrace_output', function (data) {
             var outputTable = document.getElementById('output');
-
+            // initTable();
             mergeDataAndAddOrUpdateRow(outputTable, data);
         });
 
