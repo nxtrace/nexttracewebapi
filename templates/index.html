@@ -2,236 +2,7 @@
 <html>
 <head>
     <title>NextTrace Web</title>
-    <style>
-        /*table {*/
-        /*    width: 100%;*/
-        /*    border-collapse: collapse;*/
-        /*}*/
-
-        /*th, td {*/
-        /*    padding: 8px;*/
-        /*    text-align: left;*/
-        /*    border-bottom: 1px solid #ddd;*/
-        /*}*/
-
-        @font-face {
-            font-family: 'Roboto Mono';
-            font-style: normal;
-            font-weight: 400;
-            src: url(/font/roboto-mono-latin.woff2) format('woff2');
-            unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-        }
-        :root {
-            color-scheme: dark;
-        }
-        input, button {
-            padding:7px;
-        }
-        @media only screen and (max-width:700px) {
-            input, button {
-                font-size:2em;
-            }
-        }
-        .input_settings {
-            background-color: #002000;
-            border: 1px solid #155015;
-            color:#e0e0e0;
-        }
-
-        .button_settings {
-            background-color: #002000;
-            border: 1px solid #155015;
-            color:#e0e0e0;
-        }
-        p {
-            /*prevent font scaling on mobile*/
-            max-height: 999999px;
-            -webkit-text-size-adjust: none;
-            text-size-adjust: none;
-        }
-
-        div {
-            max-height: 999999px;
-            -webkit-text-size-adjust: none;
-            text-size-adjust: none;
-        }
-
-        body {
-            background-color:#000000;
-            color:white;
-            font-family: Roboto Mono, Consolas, "Courier New", Courier, monospace;
-            font-size:14px;
-            color:#f0f0f0;
-            line-height:1.5em;
-            -webkit-text-size-adjust: none;
-            text-size-adjust: none;
-        }
-        a {
-            color:#f0f0f0;
-        }
-        td {
-            padding-top:3px;
-            padding-bottom:3px;
-            vertical-align:top;
-        }
-
-        @media only screen and (max-width:700px) {
-            input, button {
-                font-size:200%;
-            }
-        }
-        table {
-            padding-left:0px;
-            padding-right:0px;
-        }
-        .span_usage_command {
-            color:#ffffff;
-        }
-        .div_error {
-            background-color:#600000;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            color:#f0e0e0;
-            border-radius: 5px;
-            border: 1px solid #703030;
-        }
-
-
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .2s;
-            transition: .2s;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .2s;
-            transition: .2s;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-
-        /* Rounded sliders */
-        .slider.round {
-            border-radius: 34px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
-        }
-
-        #page-div {
-            /* for html2canvas */
-            background-color: #000000;
-        }
-        .pingtable table {
-            line-height: 0.8em; /*for html2canvas */
-            border-spacing: 0px 0px;
-            font-family: Consolas, "Courier New", Courier, monospace;
-        }
-        table.pingtable td {
-            width:66px;
-            cursor: default;
-            text-align:left;
-            padding-top:0px;
-            padding-bottom:1px;
-            padding-right:7px;
-            padding-left:3px;
-            margin:0px;
-            white-space:nowrap;
-            font-size:13px;
-
-        }
-        table.pingtable td:first-child {
-            width:140px;
-        }
-        table.pingtable td:nth-child(2) {
-            width:150px;
-        }
-
-        table.pingtable th {
-            padding-top:2px;
-            padding-bottom:1px;
-            padding-right:7px;
-            padding-left:3px;
-            margin:0px;
-            text-align:left;
-            color:yellow;
-            color:black;
-            background-color:#009000;
-        }
-        table.pingtable th:first-child {
-            border-top-left-radius:3px;
-            border-bottom-left-radius:3px;
-        }
-        table.pingtable th:last-child {
-            border-top-right-radius:3px;
-            border-bottom-right-radius:3px;
-        }
-        table.pingtable tr {
-            margin:0px;
-            padding:0px;
-        }
-
-        .mtr_report {
-            color:#30e050;
-            font-size:14px;
-            line-height: 130%;
-            font-family: Roboto Mono, Consolas, "Courier New", Courier, monospace;
-        }
-        pre.mtr_report a {
-            color:#104718;
-            text-decoration: underline;
-            -webkit-text-size-adjust: none;
-            text-size-adjust: none;
-        }
-        pre.mtr_report a span {
-            /*dirty trick to change color of underline */
-            color:#30e050;
-            text-decoration: none;
-            -webkit-text-size-adjust: none;
-            text-size-adjust: none;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/m.css" type="text/css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
     <script>
         var socket = io.connect(location.origin);
@@ -382,12 +153,7 @@
             cells.forEach(function (cellContent, index) {
                 if (index !== 3 && index !== 2) {
                     var cell = document.createElement('td');
-                    // if (index === 1){
-                    //     cell.textContent = cells[1] + ' ' + cells[2];
-                    // } else {
                     cell.textContent = cellContent;
-                    // }
-                    // 设置类名
                     if (index <= classNames.length) {
                         cell.className = classNames[index];
                     }
@@ -450,7 +216,7 @@
     </script>
 </head>
 <body>
-<h1>Nexttrace Web</h1>
+<h1>NextTrace Web</h1>
 <form>
     <input type="text" id="params" placeholder="Parameter" onkeydown="handleKeyPress(event)">
     <button type="button" onclick="startNexttrace()">Start Nexttrace</button>
@@ -473,7 +239,7 @@
         <th>WORST</th>
         <th>STDEV</th>
         <th>PTR</th>
-        <th>CHART</th>
+<!-- 暂时搁置       <th>CHART</th>-->
     </tr>
     <!-- Data rows will be dynamically inserted here -->
     </tbody>

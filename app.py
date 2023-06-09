@@ -85,6 +85,11 @@ def font():
     return app.send_static_file('roboto-mono-latin.woff2'), 200
 
 
+@app.route('/css/m.css')
+def css():
+    return app.send_static_file('m.css'), 200
+
+
 @socketio.on('connect')
 def handle_connect():
     print(f'Client {request.sid} connected')
