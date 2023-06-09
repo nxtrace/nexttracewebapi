@@ -49,7 +49,7 @@ class NextTraceTask:
         self.process = None
 
     def run(self):
-        fixParam = '--map --raw -q 1 --send-time 1 --ttl-time 1'  # -d disable-geoip
+        fixParam = '--map --raw -q 1 --send-time 1 --ttl-time 100'  # -d disable-geoip
         process_env = os.environ.copy()
         process_env['NEXTTRACE_UNINTERRUPTED'] = '1'
 

@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine AS builder
+FROM golang:1.20-alpine AS builder
 
 # 安装所需的软件包
 RUN apk update && apk add --no-cache git
@@ -6,7 +6,9 @@ RUN apk update && apk add --no-cache git
 # 克隆NEXTTRACE源代码并编译
 WORKDIR /build
 RUN git clone --branch v1.1.7-1 --depth 1 https://github.com/sjlleo/nexttrace-core.git . && \
-    go build -o nexttrace . \
+    go clean -modcache && \
+    go mod download && \
+    go build -o nexttrace .
 
 FROM alpine:3
 
@@ -34,7 +36,10 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # 设置工作目录
 WORKDIR /app
 
-EXPOSE 80
+# Copy start.sh to the container
+COPY start.sh /app/start.sh
 
-# 启动Nginx和Python应用程序
-CMD ["sh", "-c", "nginx && python3 app.py"]
+EXPOSE 30080
+
+# Use start.sh to start Python app and Nginx
+CMD ["/app/start.sh"]

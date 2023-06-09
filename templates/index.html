@@ -139,7 +139,42 @@
                 }
 
             }
+            sortTableRows(table);
         }
+
+        function sortTableRows(table) {
+            var tbody = table.getElementsByTagName('tbody')[0];
+            var rows = Array.prototype.slice.call(tbody.getElementsByTagName('tr'), 0);
+
+            // 按照第一列（索引为0）的数字大小排序
+            rows.sort(function (a, b) {
+                var aValue = parseInt(a.cells[0].textContent, 10);
+                var bValue = parseInt(b.cells[0].textContent, 10);
+                return aValue - bValue;
+            });
+
+            // 将排序后的行重新添加到tbody
+            rows.forEach(function (row) {
+                tbody.appendChild(row);
+            });
+            hideEmptyRowsAfterLastWithData(tbody)
+        }
+
+        function hideEmptyRowsAfterLastWithData(tbody) {
+            var rows = tbody.getElementsByTagName('tr');
+            var lastRowWithDataIndex = null;
+
+            // 查找最后一个具有第二列数据的行的索引
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].cells[1].textContent.trim() !== "") {
+                    lastRowWithDataIndex = i;
+                }
+            }
+            for (var i = lastRowWithDataIndex + 1; i < rows.length; i++) {
+                rows[i].style.display = 'none';
+            }
+        }
+
 
         function addDataRow(table, cells, latencyLast, latencyAvg, count, lossPktSum) {
             // console.log("cells array:", cells);
