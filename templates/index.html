@@ -89,16 +89,31 @@
                     countCell.textContent = data.count;
                     latencyBestCell.textContent = Math.min.apply(null, data.latencyList).toFixed(2);
                     latencyWorstCell.textContent = Math.max.apply(null, data.latencyList).toFixed(2);
+
+                    // 添加这些行来设置背景颜色
+                    var colorForLast = getRGB(latencyLast);
+                    latencyLastCell.style.backgroundColor = 'rgb(' + colorForLast['r'] + ',' + colorForLast['g'] + ',' + colorForLast['b'] + ')';
+                    var colorForAvg = getRGB(latencyAvg);
+                    latencyAvgCell.style.backgroundColor = 'rgb(' + colorForAvg['r'] + ',' + colorForAvg['g'] + ',' + colorForAvg['b'] + ')';
+                    var colorForBest = getRGB(Math.min.apply(null, data.latencyList));
+                    latencyBestCell.style.backgroundColor = 'rgb(' + colorForBest['r'] + ',' + colorForBest['g'] + ',' + colorForBest['b'] + ')';
+                    var colorForWorst = getRGB(Math.max.apply(null, data.latencyList));
+                    latencyWorstCell.style.backgroundColor = 'rgb(' + colorForWorst['r'] + ',' + colorForWorst['g'] + ',' + colorForWorst['b'] + ')';
+
                     var latencyStd = 0;
                     data.latencyList.forEach(function (latency) {
                         latencyStd += Math.pow(latency - latencyAvg, 2);
                     });
                     latencyStd = Math.sqrt(latencyStd / data.count);
                     latencyStdCell.textContent = latencyStd.toFixed(2);
+                    var colorForStd = getRGBstdev(latencyStd);
+                    latencyStdCell.style.backgroundColor = 'rgb(' + colorForStd['r'] + ',' + colorForStd['g'] + ',' + colorForStd['b'] + ')';
+
                 } else {
                     latencyLastCell.textContent = '-'
                     data.lossPktSum++;
                     lossPktRateCell.textContent = (data.lossPktSum / (data.lossPktSum + data.count)).toFixed(2);
+                    lossPktRateCell.style.backgroundColor = getLossColor(data.lossPktSum / (data.lossPktSum + data.count));
                 }
 
                 var rdnsCell = rowToUpdate.querySelector('.rdns');
@@ -227,7 +242,7 @@
             row.appendChild(latencyWorstCell);
 
             var latencyStdCell = document.createElement('td');
-            latencyStdCell.textContent = latencyLast;
+            latencyStdCell.textContent = '0';
             latencyStdCell.className = 'latency_std';
             row.appendChild(latencyStdCell);
 
@@ -248,6 +263,57 @@
             }
         }
 
+        function getRGB ( latency ) {
+            var result = [];
+            result [ 'r' ] = 0;
+            result [ 'g' ] = 0;
+            result [ 'b' ] = 0;
+            if ( isNaN ( latency ) || latency === 0 ) {
+                return result;
+            }
+            var color_r = Math.round ( ( latency - 180 ) / 2 );
+            //var color_r = Math.round ( 0.000001 * Math.pow ( latency - 150, 3.3 ) );
+            if ( color_r < 0 ) color_r = 0;
+            if ( color_r > 100 ) color_r = 100;
+
+            //var color_g = Math.round ( ( 200 - latency  / 1.2 ) );
+            // https://www.desmos.com/calculator
+            // y = 55 - 0.0000075 * x^3
+            var color_g = Math.round (40 - 0.000005 * Math.pow ( latency, 3 ) );
+            if ( color_g < 0 ) color_g = 0;
+            if ( color_g > 40 ) color_g = 40;
+            var color_b = 0;
+            result [ 'r' ] = color_r;
+            result [ 'g' ] = color_g;
+            result [ 'b' ] = color_b;
+            return result;
+        }
+
+        function getRGBstdev ( stdev ) {
+            var result = [];
+            result [ 'r' ] = 0;
+            result [ 'g' ] = 0;
+            result [ 'b' ] = 0;
+            if ( isNaN ( stdev ) || stdev === 0 ) {
+                return result;
+            }
+            var color_r = Math.round ( ( stdev - 5 ) * 4 )  ;
+            if ( color_r < 0 ) color_r = 0;
+            if ( color_r > 100 ) color_r = 100;
+            var color_g = 0;
+            var color_b = 0;
+            result [ 'r' ] = color_r;
+            result [ 'g' ] = color_g;
+            result [ 'b' ] = color_b;
+            return result;
+        }
+
+        function getLossColor(loss) {
+            var colorLossR = Math.round(Math.pow(loss, 1.6) + 10);
+            if (colorLossR < 11) colorLossR = 0;
+            if (colorLossR > 160) colorLossR = 160;
+            return 'rgba(' + colorLossR + ',0,0,1)';
+        }
     </script>
 </head>
 <body>
@@ -274,7 +340,7 @@
         <th>WORST</th>
         <th>STDEV</th>
         <th>PTR</th>
-<!-- 暂时搁置       <th>CHART</th>-->
+        <!-- 暂时搁置       <th>CHART</th>-->
     </tr>
     <!-- Data rows will be dynamically inserted here -->
     </tbody>
