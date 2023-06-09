@@ -8,7 +8,7 @@ from threading import Thread
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='assets')
 app.config['SECRET_KEY'] = 'secret'
 socketio = SocketIO(app)
 nexttrace_path = '/usr/local/bin/nexttrace'
@@ -49,7 +49,7 @@ class NextTraceTask:
         self.process = None
 
     def run(self):
-        fixParam = '--map --raw -q 1 --send-time 1 --ttl-time 1' # -d disable-geoip
+        fixParam = '--map --raw -q 1 --send-time 1 --ttl-time 1'  # -d disable-geoip
         process_env = os.environ.copy()
         process_env['NEXTTRACE_UNINTERRUPTED'] = '1'
 
@@ -77,6 +77,12 @@ class NextTraceTask:
 @app.route('/')
 def index():
     return render_template('index.html'), 200
+
+
+# 返回在assets文件夹下的roboto-mono-latin.woff2字体文件
+@app.route('/font/roboto-mono-latin.woff2')
+def font():
+    return app.send_static_file('roboto-mono-latin.woff2'), 200
 
 
 @socketio.on('connect')
