@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NextTrace Web</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+    <script>
+        var socket = io.connect(location.origin);
+        var dataMap = {}; // 存储已合并的数据
+
+        socket.on('connect', function () {
+            console.log('Connected');
+        });
+
+        socket.on('disconnect', function () {
+            console.log('Disconnected');
+        });
+
+        socket.on('nexttrace_output', function (data) {
+            var outputTable = document.getElementById('output');
+
+            mergeDataAndAddOrUpdateRow(outputTable, data);
+        });
+
+        socket.on('nexttrace_complete', function () {
+            console.log('Nexttrace complete');
+        });
+
+        function startNexttrace() {
+            var params = document.getElementById("params").value;
+
+            socket.emit('start_nexttrace', {params: params});
+        }
+
+        function stopNexttrace() {
+            socket.emit('stop_nexttrace');
+        }
+
+        function mergeDataAndAddOrUpdateRow(table, cells) {
+            // var tbody = table.getElementsByTagName('tbody')[0];
+            var parsedData = JSON.parse(cells); // 解析接收到的JSON列表
+            var hop = parsedData[0];
+            var latency = parseFloat(parsedData[3]);
+            var latencyLast = latency; // 初始化最新一次的 latency 值
+
+            if (hop in dataMap) {
+                // 如果存在相同 hop 的数据，则更新已有行的数据
+                var rowToUpdate = dataMap[hop].row;
+                // console.log("rowToUpdate:", rowToUpdate);
+                var latencyLastCell = rowToUpdate.querySelector('.latency_last');
+                var latencyAvgCell = rowToUpdate.querySelector('.latency_avg');
+                var countCell = rowToUpdate.querySelector('.count');
+                var lossPktRateCell = rowToUpdate.querySelector('.lossPktRate');
+
+                var ipCell = rowToUpdate.querySelector('.ip');
+                var ipList = ipCell.textContent.split(/\s+/);
+                if (/\S/.test(parsedData[1]) && !ipList.includes(parsedData[2]) && (parsedData[2]!=='')) {
+                    if (!ipList.includes(parsedData[1])) {
+                        ipCell.textContent += '\n' + parsedData[1] + ' ' + parsedData[2];
+                    } else {
+                        var ipListCopy = ipCell.textContent.split('\n');
+                        ipListCopy.forEach(function (ip) {
+                            if (ip.includes(parsedData[1])) {
+                                ipCell.textContent = ipCell.textContent.replace(ip, parsedData[1] + ' ' + parsedData[2]);
+                            }
+                        });
+                    }
+                }
+
+                if (/\S/.test(parsedData[4])) {
+                    rowToUpdate.querySelector('.asn').textContent = parsedData[4];
+                }
+                if (/\S/.test(parsedData[5])) {
+                    rowToUpdate.querySelector('.location').textContent = parsedData[5];
+                }
+                if (/\S/.test(parsedData[6])) {
+                    rowToUpdate.querySelector('.domain').textContent = parsedData[6];
+                }
+
+                var data = dataMap[hop].data;
+                if (latency !== 0 && !isNaN(latency)) {
+                    // 更新数据
+                    data.count++;
+                    data.latencySum += latency;
+                    latencyAvg = data.latencySum / data.count;
+                    latencyLast = latency; // 更新最新一次的 latency 值
+                    // 更新单元格内容
+                    latencyLastCell.textContent = latencyLast.toFixed(2);
+                    latencyAvgCell.textContent = latencyAvg.toFixed(2);
+                    countCell.textContent = data.count;
+                } else {
+                    latencyLastCell.textContent = '-'
+                    data.lossPktSum++;
+                    lossPktRateCell.textContent = (data.lossPktSum / (data.lossPktSum + data.count)).toFixed(2);
+                }
+
+
+            } else {
+                if (latency !== 0 && !isNaN(latency)) {
+                    var data = {
+                        count: 1,
+                        latencySum: latency,
+                        lossPktSum: 0
+                    };
+                    var latencyAvg = latency;
+                    dataMap[hop] = {
+                        data: data,
+                        row: addDataRow(table, parsedData, latencyLast.toFixed(2), latencyAvg.toFixed(2), 1, 0)
+                    };
+                } else {
+                    var data = {
+                        count: 0,
+                        latencySum: 0
+                    };
+                    dataMap[hop] = {
+                        data: data,
+                        row: addDataRow(table, parsedData, '-', '-', 0, 1)
+                    };
+                }
+
+            }
+        }
+
+        function addDataRow(table, cells, latencyLast, latencyAvg, count, lossPktSum) {
+            // console.log("cells array:", cells);
+            var tbody = table.getElementsByTagName('tbody')[0];
+
+            // 创建新行
+            var row = document.createElement('tr');
+
+            var classNames = ['hops', 'ip', 'rdns', 'latency', 'asn', 'location', 'domain'];
+
+            cells.forEach(function (cellContent, index) {
+                if (index !== 3 && index !== 2) {
+                    var cell = document.createElement('td');
+                    if (index === 1){
+                        cell.textContent = cells[1] + ' ' + cells[2];
+                    } else {
+                        cell.textContent = cellContent;
+                    }
+                    // 设置类名
+                    if (index <= classNames.length) {
+                        cell.className = classNames[index];
+                    }
+                    row.appendChild(cell);
+                }
+            });
+
+            var lossPktRateCell = document.createElement('td');
+            lossPktRateCell.textContent = (lossPktSum / (lossPktSum + count)).toFixed(2);
+            lossPktRateCell.className = 'lossPktRate';
+            row.appendChild(lossPktRateCell);
+
+            var countCell = document.createElement('td');
+            countCell.textContent = count;
+            countCell.className = 'count';
+            row.appendChild(countCell);
+
+            var latencyLastCell = document.createElement('td');
+            latencyLastCell.textContent = latencyLast;
+            latencyLastCell.className = 'latency_last';
+            row.appendChild(latencyLastCell);
+
+            var latencyAvgCell = document.createElement('td');
+            latencyAvgCell.textContent = latencyAvg;
+            latencyAvgCell.className = 'latency_avg';
+            row.appendChild(latencyAvgCell);
+
+            // 将新行插入到表格最后
+            tbody.appendChild(row);
+            return row;
+        }
+
+        function handleKeyPress(event) {
+            if (event.keyCode === 13) { // 按下回车键的键码是 13
+                event.preventDefault(); // 阻止默认的回车键行为
+                startNexttrace(); // 调用 startNexttrace() 函数
+            }
+        }
+
+    </script>
+</head>
+<body>
+<h1>Nxttrace Web</h1>
+<form>
+    <input type="text" id="params" placeholder="Parameter" onkeydown="handleKeyPress(event)">
+    <button type="button" onclick="startNexttrace()">Start Nexttrace</button>
+    <button type="button" onclick="stopNexttrace()">Stop Nexttrace</button>
+    <button type="button" onclick="location.reload()">Reset</button>
+</form>
+<table id="output">
+    <thead>
+    <tr>
+        <th>HOP</th>
+        <th>IP</th>
+        <th>ASN</th>
+        <th>LOCATION</th>
+        <th>DOMAIN</th>
+        <th>LOSS%</th>
+        <th>SENT</th>
+        <th>LAST</th>
+        <th>AVG</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Data rows will be dynamically inserted here -->
+    </tbody>
+</table>
+</body>
+</html>
