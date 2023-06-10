@@ -22,16 +22,16 @@ Inspired by PING.PE
 推荐使用Docker安装
 ```bash
 docker pull tsosc/nexttraceweb
-docker run --network host -d --privileged --name ntwa nexttraceweb
+docker run --network host -d --privileged --name ntwa tsosc/nexttraceweb
 # 使用 http://your_ip:30080 访问
 ```
 若要使用其他地址和端口，请在docker run时加入参数
 ```bash
-docker run --network host -d --privileged --name ntwa nexttraceweb 127.0.0.1:30080
+docker run --network host -d --privileged --name ntwa tsosc/nexttraceweb 127.0.0.1:30080
 # 监听127.0.0.1:30080
-docker run --network host -d --privileged --name ntwa nexttraceweb 80
+docker run --network host -d --privileged --name ntwa tsosc/nexttraceweb 80
 # 监听所有IP的80端口
-docker run --network host -d --privileged --name ntwa nexttraceweb [::1]:30080
+docker run --network host -d --privileged --name ntwa tsosc/nexttraceweb [::1]:30080
 # 监听[::1]:30080
 ```
 
