@@ -614,9 +614,10 @@
         <input type="text" id="devInput" placeholder="Device">
         <br>
         <label for="localResolveCheckbox" class="block-container">
-            <input type="checkbox" id="localResolveCheckbox">
+            <input type="checkbox" id="localResolveCheckbox" checked>
             LOCAL RESOLVE
         </label>
+        <!--若不使用本地解析，将会在域名有多IP的时候卡死-->
         <br>
         <button id="saveBtn">Save</button>
     </div>

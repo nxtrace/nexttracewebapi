@@ -161,16 +161,16 @@ def start_nexttrace(data):
                 params += f' --ttl-time {int(float(intervalSeconds) * 1000)}'
             packetSize = data.get('packetSize')
             if packetSize:
-                params += f' --psize {packetSize}'
+                params += f' --psize {int(packetSize)}'
             maxHop = data.get('maxHop')
             if maxHop:
-                params += f' --max-hops {maxHop}'
+                params += f' --max-hops {int(maxHop)}'
             minHop = data.get('minHop')
             if minHop:
-                params += f' --first {minHop}'
+                params += f' --first {int(minHop)}'
             port = data.get('port')
             if port:
-                params += f' --port {port}'
+                params += f' --port {int(port)}'
             device = data.get('device')
             if device:
                 device = device.strip()
