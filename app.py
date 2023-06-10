@@ -113,7 +113,8 @@ def handle_disconnect():
 
 @socketio.on('start_nexttrace')
 def start_nexttrace(data):
-    params = data['params']
+    logging.info(f"Client {request.sid} start nexttrace, params: {data}")
+    params = data['ip']
     task = NextTraceTask(request.sid, socketio, params, nexttrace_path)
     clients[request.sid] = task
     # 更新客户端的最后活跃时间

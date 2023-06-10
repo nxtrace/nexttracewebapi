@@ -26,11 +26,26 @@
             console.log('Nexttrace complete');
         });
 
-        function startNexttrace() {
+        async function startNexttrace() {
             var params = document.getElementById("params").value;
+            localStorage.setItem("ipVersion", document.getElementById("ipVersion").value);
             localStorage.setItem("protocol", document.getElementById("protocol").value);
-            socket.emit('start_nexttrace', {params: params});
+            var settingsString = getFormattedSettingsString();
+
+            // 使用 await 来等待 parseDomain 函数的结果
+            var ip = await parseDomain(params)
+            console.log('要trace的ip/domain:', ip)
+
+            if (ip == null) {
+                document.getElementById("params").placeholder = "Invalid input or unresolvable domain";
+                console.log('Invalid input or unresolvable domain');
+            } else {
+                console.log('begin -> ', 'params:', params, 'settingsString:', settingsString);
+                // socket.emit('start_nexttrace', {params: params, settingsString: settingsString});
+                socket.emit('start_nexttrace', {ip: ip});
+            }
         }
+
 
         function stopNexttrace() {
             socket.emit('stop_nexttrace');
@@ -337,6 +352,109 @@
           <!-- 暂时搁置       <th>CHART</th>-->
         `;
         }
+
+        function getValueFromLocalStorage(key) {
+            var value = localStorage.getItem(key);
+            return value ? value : "none";
+        }
+
+        function getFormattedSettingsString() {
+            var ipVersion = getValueFromLocalStorage("ipVersion");
+            var protocol = getValueFromLocalStorage("protocol");
+            var language = getValueFromLocalStorage("language");
+            var intervalSeconds = getValueFromLocalStorage("intervalSeconds");
+            var maxHop = getValueFromLocalStorage("maxHop");
+            var minHop = getValueFromLocalStorage("minHop");
+            var port = getValueFromLocalStorage("port");
+            var device = getValueFromLocalStorage("device");
+
+            // Concatenating the values into a formatted string
+            return ipVersion + "|" +
+                protocol + "|" +
+                language + "|" +
+                intervalSeconds + "|" +
+                maxHop + "|" +
+                minHop + "|" +
+                port + "|" +
+                device;
+        }
+
+        function resolveDomain(domain) {
+            return new Promise((resolve, reject) => {
+                var ipVersion = getValueFromLocalStorage("ipVersion");
+                var types = [];
+                // 根据ipVersion决定查询类型
+                if (ipVersion === 'ipv6') {
+                    types = ['AAAA']; // 只查询IPv6
+                } else if (ipVersion === 'all') {
+                    types = ['AAAA', 'A']; // 查询IPv4和IPv6
+                } else {
+                    types = ['A']; // 默认只查询IPv4
+                }
+
+                var resolvedAddress = null;
+                var promises = types.map(function(type) {
+                    // 使用Cloudflare的公开DNS解析服务
+                    return fetch('https://cloudflare-dns.com/dns-query?name=' + domain + '&type=' + type, {
+                        headers: {'accept': 'application/dns-json'}
+                    })
+                        .then(function(response) {
+                            return response.json();
+                        })
+                        .then(function(data) {
+                            if (data && data.Answer && data.Answer.length > 0) {
+                                var ipAddress = data.Answer[0].data;
+                                console.log('IP地址:', ipAddress, '类型:', type);
+                                if (!resolvedAddress) {
+                                    resolvedAddress = ipAddress;
+                                }
+                            } else {
+                                console.log('未能解析域名,', 'type:', type, 'domain:', domain);
+                            }
+                        });
+                });
+
+                Promise.all(promises).then(() => {
+                    resolve(resolvedAddress);
+                });
+            });
+        }
+
+        function parseDomain(domain) {
+            return new Promise((resolve, reject) => {
+                if (!domain || domain === "") {
+                    console.error("Usage: Please provide a domain/ip/url.");
+                    resolve(null);
+                }
+
+                if (domain.includes("/")) {
+                    domain = domain.split("/")[2];
+                }
+
+                if (domain.includes("]")) {
+                    domain = domain.split("]")[0].split("[")[1];
+                } else if (domain.includes(":")) {
+                    if ((domain.match(/:/g) || []).length === 1) {
+                        domain = domain.split(":")[0];
+                    }
+                }
+
+                var localResolve = getValueFromLocalStorage("localResolve");
+                if (localResolve === "true") {
+                    console.log("使用本地DNS解析域名:", domain);
+                    resolveDomain(domain).then(ipAddress => {
+                        if (ipAddress) {
+                            resolve(ipAddress);
+                        } else {
+                            resolve(null);
+                        }
+                    });
+                } else {
+                    console.log("使用服务器解析域名:", domain);
+                    resolve(domain);
+                }
+            });
+        }
     </script>
 </head>
 <style>
@@ -387,8 +505,14 @@
 <h1>NextTrace Web</h1>
 <form>
     <label for="params">
-        <input type="text" id="params" placeholder="Parameter" onkeydown="handleKeyPress(event)">
+        <input type="text" id="params" placeholder="IP/Domain/URL" onkeydown="handleKeyPress(event)">
     </label>
+    <label for="ipVersion"></label>
+    <select id="ipVersion" name="protocol">
+        <option value="all">ALL</option>
+        <option value="ipv4">IPv4</option>
+        <option value="ipv6">IPv6</option>
+    </select>
     <label for="protocol"></label>
     <select id="protocol" name="protocol">
         <option value="icmp">ICMP</option>
@@ -487,7 +611,6 @@
 
     saveBtn.addEventListener("click", function(event) {
         event.preventDefault(); // 阻止按钮默认的提交行为
-
 
         // Save settings to localStorage
         localStorage.setItem("language", document.getElementById("language").value);
