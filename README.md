@@ -8,7 +8,8 @@
 
 NEXTTRACE项目派生的仓库，用于实现简易的NEXTTRACE WEB API服务端
 
-![telegram-cloud-photo-size-5-6060028439399872135-y](https://github.com/tsosunchia/nexttracewebapi/assets/59512455/efb07488-79e7-47ed-941e-f2fc174e5c79)
+<img width="1436" alt="截屏2023-06-11 05 06 35" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/a2a4cbdd-5e0c-401a-ac02-bbccf463c013">
+<img width="352" alt="截屏2023-06-11 05 05 16" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/f36924d1-37f8-4eca-bb6c-41800283c628">
 
 请注意，本项目使用了websocket作为通信协议，因此请在配置反代时参考仓库内的代码(本仓库提供的Docker Image 已内置 Nginx 反代)。
 
