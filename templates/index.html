@@ -365,6 +365,7 @@
                 protocol: getValueFromLocalStorage("protocol"),
                 language: getValueFromLocalStorage("language"),
                 intervalSeconds: getValueFromLocalStorage("intervalSeconds"),
+                packetSize: getValueFromLocalStorage("packetSize"),
                 maxHop: getValueFromLocalStorage("maxHop"),
                 minHop: getValueFromLocalStorage("minHop"),
                 port: getValueFromLocalStorage("port"),
@@ -594,6 +595,12 @@
         <input type="number" id="intervalTimeInput" min="0.005" max="1" step="0.001" value="0.040">
         </div>
         <br>
+        <label for="packetSizeSlider">Packet Size:</label>
+        <div id="packetSizeSlider" class="block-container">
+        <input type="range" id="packetSizeRange" min="0" max="1500" step="1" value="52">
+        <input type="number" id="packetSizeInput" min="0" max="1500" step="1" value="52">
+        </div>
+        <br>
         <label for="maxHopInput">Max Hop:</label>
         <input type="number" id="maxHopInput" min="1" max="30" step="1" value="30">
         <br>
@@ -652,8 +659,6 @@
         event.preventDefault(); // 阻止按钮默认的提交行为
         settingMenu.style.display = "block";
     });
-    var intervalTimeRange = document.getElementById("intervalTimeRange");
-    var intervalTimeInput = document.getElementById("intervalTimeInput");
 
     document.addEventListener("click", function(event) {
         var target = event.target;
@@ -661,7 +666,8 @@
             settingMenu.style.display = "none";
         }
     });
-
+    var intervalTimeRange = document.getElementById("intervalTimeRange");
+    var intervalTimeInput = document.getElementById("intervalTimeInput");
     // 拖动滑块时更新输入框的值
     intervalTimeRange.addEventListener("input", function() {
         intervalTimeInput.value = intervalTimeRange.value;
@@ -670,6 +676,16 @@
     intervalTimeInput.addEventListener("input", function() {
         intervalTimeRange.value = intervalTimeInput.value;
     });
+    var packetSizeRange = document.getElementById("packetSizeRange");
+    var packetSizeInput = document.getElementById("packetSizeInput");
+    // 拖动滑块时更新输入框的值
+    packetSizeRange.addEventListener("input", function() {
+        packetSizeInput.value = packetSizeRange.value;
+    });
+    // 输入框值变化时更新拖动滑块的值
+    packetSizeInput.addEventListener("input", function() {
+        packetSizeRange.value = packetSizeInput.value;
+    });
 
     saveBtn.addEventListener("click", function(event) {
         event.preventDefault(); // 阻止按钮默认的提交行为
@@ -677,6 +693,7 @@
         // Save settings to localStorage
         localStorage.setItem("language", document.getElementById("language").value);
         localStorage.setItem("intervalSeconds", document.getElementById("intervalTimeInput").value);
+        localStorage.setItem("packetSize", document.getElementById("packetSizeInput").value);
         localStorage.setItem("maxHop", document.getElementById("maxHopInput").value);
         localStorage.setItem("minHop", document.getElementById("minHopInput").value);
         localStorage.setItem("port", document.getElementById("portInput").value);
@@ -697,6 +714,11 @@
             var intervalSeconds = localStorage.getItem("intervalSeconds");
             document.getElementById("intervalTimeInput").value = intervalSeconds;
             document.getElementById("intervalTimeRange").value = intervalSeconds;
+        }
+        if(localStorage.getItem("packetSize")) {
+            var packetSize = localStorage.getItem("packetSize");
+            document.getElementById("packetSizeInput").value = packetSize;
+            document.getElementById("packetSizeRange").value = packetSize;
         }
         if(localStorage.getItem("maxHop")) {
             document.getElementById("maxHopInput").value = localStorage.getItem("maxHop");

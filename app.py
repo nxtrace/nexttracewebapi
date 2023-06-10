@@ -9,7 +9,16 @@ from threading import Thread
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+# 从环境变量中读取日志级别
+log_level = os.environ.get('NTWA_LOG_LEVEL', 'INFO').upper()
+
+# 验证获取的日志级别是否有效
+valid_log_levels = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
+if log_level not in valid_log_levels:
+    log_level = 'INFO'  # 设置默认值为 INFO 如果环境变量中的值无效
+
+# 使用获取到的日志级别配置日志
+logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)s %(message)s')
 
 app = Flask(__name__, static_folder='assets')
 app.config['SECRET_KEY'] = 'secret'
@@ -150,6 +159,9 @@ def start_nexttrace(data):
             intervalSeconds = data.get('intervalSeconds')
             if intervalSeconds:
                 params += f' --ttl-time {int(float(intervalSeconds) * 1000)}'
+            packetSize = data.get('packetSize')
+            if packetSize:
+                params += f' --psize {packetSize}'
             maxHop = data.get('maxHop')
             if maxHop:
                 params += f' --max-hops {maxHop}'
