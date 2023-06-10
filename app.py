@@ -9,6 +9,8 @@ from threading import Thread
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+
 app = Flask(__name__, static_folder='assets')
 app.config['SECRET_KEY'] = 'secret'
 socketio = SocketIO(app)
