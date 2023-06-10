@@ -56,6 +56,12 @@ class NextTraceTask:
         process_env = os.environ.copy()
         process_env['NEXTTRACE_UNINTERRUPTED'] = '1'
 
+        pattern = re.compile(r'[&;<>\"\'()|\[\]{}$#!%*+=]')
+        if pattern.search(self.params):
+            self.socketio.emit('nexttrace_output', 'Invalid params', room=self.sid)
+            self.socketio.emit('nexttrace_complete', room=self.sid)
+            raise ValueError('Invalid params')
+
         self.process = subprocess.Popen(
             [self.nexttrace_path] + self.params.split() + fixParam.split(),
             stdout=subprocess.PIPE, universal_newlines=True, env=process_env
@@ -110,10 +116,13 @@ def start_nexttrace(data):
     params = data['params']
     task = NextTraceTask(request.sid, socketio, params, nexttrace_path)
     clients[request.sid] = task
-    thread = Thread(target=task.run)
-    thread.start()
     # 更新客户端的最后活跃时间
     client_last_active[request.sid] = time.time()
+    thread = Thread(target=task.run)
+    try:
+        thread.start()
+    except ValueError:
+        logging.warning(f"Invalid params: {params}")
 
 
 @socketio.on('stop_nexttrace')
