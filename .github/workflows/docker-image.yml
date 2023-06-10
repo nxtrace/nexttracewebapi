@@ -16,7 +16,6 @@ on:
 
 jobs:
   docker:
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
