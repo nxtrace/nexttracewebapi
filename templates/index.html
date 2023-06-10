@@ -49,7 +49,7 @@
                 // console.log("rowToUpdate:", rowToUpdate);
                 var latencyLastCell = rowToUpdate.querySelector('.latency_last');
                 var latencyAvgCell = rowToUpdate.querySelector('.latency_avg');
-                var countCell = rowToUpdate.querySelector('.count');
+                var sentCell = rowToUpdate.querySelector('.sent');
                 var lossPktRateCell = rowToUpdate.querySelector('.lossPktRate');
 
                 var ipCell = rowToUpdate.querySelector('.ip');
@@ -86,7 +86,7 @@
                     // 更新单元格内容
                     latencyLastCell.textContent = latencyLast.toFixed(2);
                     latencyAvgCell.textContent = latencyAvg.toFixed(2);
-                    countCell.textContent = data.count;
+                    sentCell.textContent = data.count + data.lossPktSum;
                     latencyBestCell.textContent = Math.min.apply(null, data.latencyList).toFixed(2);
                     latencyWorstCell.textContent = Math.max.apply(null, data.latencyList).toFixed(2);
 
@@ -112,8 +112,8 @@
                 } else {
                     latencyLastCell.textContent = '-'
                     data.lossPktSum++;
-                    lossPktRateCell.textContent = (data.lossPktSum / (data.lossPktSum + data.count)).toFixed(2);
-                    lossPktRateCell.style.backgroundColor = getLossColor(data.lossPktSum / (data.lossPktSum + data.count));
+                    lossPktRateCell.textContent = String(Math.round((100 * data.lossPktSum / (data.lossPktSum + data.count)) * 10) / 10);
+                    lossPktRateCell.style.backgroundColor = getLossColor(100 * data.lossPktSum / (data.lossPktSum + data.count));
                 }
 
                 var rdnsCell = rowToUpdate.querySelector('.rdns');
@@ -212,14 +212,14 @@
             });
 
             var lossPktRateCell = document.createElement('td');
-            lossPktRateCell.textContent = (lossPktSum / (lossPktSum + count)).toFixed(2);
+            lossPktRateCell.textContent = String(Math.round((100 * lossPktSum / (lossPktSum + count)) * 10) / 10);
             lossPktRateCell.className = 'lossPktRate';
             row.appendChild(lossPktRateCell);
 
-            var countCell = document.createElement('td');
-            countCell.textContent = count;
-            countCell.className = 'count';
-            row.appendChild(countCell);
+            var sentCell = document.createElement('td');
+            sentCell.textContent = count + lossPktSum;
+            sentCell.className = 'sent';
+            row.appendChild(sentCell);
 
             var latencyLastCell = document.createElement('td');
             latencyLastCell.textContent = latencyLast;
