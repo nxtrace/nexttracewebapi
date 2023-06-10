@@ -10,6 +10,8 @@ LISTEN_DIRECTIVE="listen ${HOSTPORT}"
 
 # 修改nginx.conf文件
 sed -i "s/listen 30080;/${LISTEN_DIRECTIVE};/" /etc/nginx/nginx.conf
-
+if [ -n "$1" ]; then
+  sed -i "/listen \[::\]:30080/d" /etc/nginx/nginx.conf
+fi
 # 启动nginx
 exec nginx -g 'daemon off;'
