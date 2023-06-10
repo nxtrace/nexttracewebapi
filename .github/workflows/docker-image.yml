@@ -9,10 +9,10 @@ on:
       - "**/*.py"
       - "**/*.html"
       - "**/*.css"
-      - "nginx.conf"
-      - "Dockerfile"
-      - "entrypoint.sh"
-      - "requirements.txt"
+      - "**/nginx.conf"
+      - "**/Dockerfile"
+      - "**/entrypoint.sh"
+      - "**/requirements.txt"
 
 jobs:
   docker:
