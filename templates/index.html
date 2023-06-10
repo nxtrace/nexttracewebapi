@@ -314,15 +314,128 @@
             if (colorLossR > 160) colorLossR = 160;
             return 'rgba(' + colorLossR + ',0,0,1)';
         }
+
+        function resetForm() {
+            // 重置输入框
+            document.getElementById("params").value = "";
+
+            // 清空动态添加的表格行
+            var tableBody = document.querySelector("#output tbody");
+            tableBody.innerHTML = `
+          <th>HOP</th>
+          <th>IP</th>
+          <th>ASN</th>
+          <th>LOCATION</th>
+          <th>DOMAIN</th>
+          <th>LOSS%</th>
+          <th>SENT</th>
+          <th>LAST</th>
+          <th>AVG</th>
+          <th>BEST</th>
+          <th>WORST</th>
+          <th>STDEV</th>
+          <th>PTR</th>
+          <!-- 暂时搁置       <th>CHART</th>-->
+        `;
+        }
     </script>
 </head>
+<style>
+    /* 默认样式 */
+    .floating-menu {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: darkblue;
+        padding: 2vw;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 4px;
+    }
+
+    /* 移动设备样式 */
+    @media screen and (max-width: 767px) {
+        .floating-menu {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 4vw;
+            background-color: darkblue;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px;
+        }
+    }
+
+    .block-container {
+        display: flex;
+        box-shadow: 0 2px 3px mediumpurple;
+        align-items: center;
+        justify-content: center;
+        background-color: midnightblue;
+    }
+
+    .floating-menu input
+     {
+        margin-bottom: 5px;
+        background-color: midnightblue;
+        color: white;
+    }
+
+</style>
+
 <body>
 <h1>NextTrace Web</h1>
 <form>
-    <input type="text" id="params" placeholder="Parameter" onkeydown="handleKeyPress(event)">
+    <label for="params">
+        <input type="text" id="params" placeholder="Parameter" onkeydown="handleKeyPress(event)">
+    </label>
+    <label for="protocol"></label>
+    <select id="protocol" name="protocol">
+        <option value="icmp">ICMP</option>
+        <option value="tcp">TCP</option>
+        <option value="udp">UDP</option>
+    </select>
     <button type="button" onclick="startNexttrace()">Start Nexttrace</button>
     <button type="button" onclick="stopNexttrace()">Stop Nexttrace</button>
-    <button type="button" onclick="location.reload()">Reset</button>
+    <button type="button" onclick="resetForm()">Reset</button>
+    <button id="settingBtn">Settings</button>
+
+
+    <div id="settingMenu" class="floating-menu">
+        <label for="language">Language:</label>
+        <select id="language" name="language">
+            <option value="cn">Chinese</option>
+            <option value="en">English</option>
+        </select>
+        <br>
+        <label for="intervalTimeSlider">Interval Seconds:</label>
+        <div id="intervalTimeSlider" class="block-container">
+        <input type="range" id="intervalTimeRange" min="0.5" max="5" step="0.1" value="0.5">
+        <input type="number" id="intervalTimeInput" min="0.5" max="5" step="0.1" value="0.5">
+        </div>
+        <br>
+        <label for="maxHopInput">Max Hop:</label>
+        <input type="number" id="maxHopInput" min="1" max="30" step="1" value="30">
+        <br>
+        <label for="minHopInput">Min Hop:</label>
+        <input type="number" id="minHopInput" min="1" max="30" step="1" value="1">
+        <br>
+        <label for="portInput">Port:</label>
+        <input type="number" id="portInput" min="1" max="65535" step="1" value="80">
+        <br>
+        <label for="devInput">Device:</label>
+        <input type="text" id="devInput" placeholder="Device">
+        <br>
+        <label for="localResolveCheckbox" class="block-container">
+            <input type="checkbox" id="localResolveCheckbox">
+            LOCAL RESOLVE
+        </label>
+        <br>
+        <button id="saveBtn">Save</button>
+    </div>
+
+
 </form>
 <table id="output" class="pingtable">
     <tbody>
@@ -345,5 +458,44 @@
     <!-- Data rows will be dynamically inserted here -->
     </tbody>
 </table>
+<script>
+
+    var settingBtn = document.getElementById("settingBtn");
+    var settingMenu = document.getElementById("settingMenu");
+    var saveBtn = document.getElementById("saveBtn");
+
+    settingBtn.addEventListener("click", function(event) {
+        event.preventDefault(); // 阻止按钮默认的提交行为
+        settingMenu.style.display = "block";
+    });
+    var intervalTimeRange = document.getElementById("intervalTimeRange");
+    var intervalTimeInput = document.getElementById("intervalTimeInput");
+
+    document.addEventListener("click", function(event) {
+        var target = event.target;
+        if (!settingMenu.contains(target) && target !== settingBtn) {
+            settingMenu.style.display = "none";
+        }
+    });
+
+    // 拖动滑块时更新输入框的值
+    intervalTimeRange.addEventListener("input", function() {
+        intervalTimeInput.value = intervalTimeRange.value;
+    });
+    // 输入框值变化时更新拖动滑块的值
+    intervalTimeInput.addEventListener("input", function() {
+        intervalTimeRange.value = intervalTimeInput.value;
+    });
+
+    saveBtn.addEventListener("click", function(event) {
+        event.preventDefault(); // 阻止按钮默认的提交行为
+
+
+        // TODO: 在这里处理保存按钮的逻辑
+
+        settingMenu.style.display = "none";
+    });
+
+</script>
 </body>
 </html>
