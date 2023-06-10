@@ -30,7 +30,7 @@
             var params = document.getElementById("params").value;
             localStorage.setItem("ipVersion", document.getElementById("ipVersion").value);
             localStorage.setItem("protocol", document.getElementById("protocol").value);
-            var settingsString = getFormattedSettingsString();
+            var extraSettings = getFormattedSettings();
 
             // 使用 await 来等待 parseDomain 函数的结果
             var ip = await parseDomain(params)
@@ -39,10 +39,10 @@
             if (ip == null) {
                 document.getElementById("params").placeholder = "Invalid input or unresolvable domain";
                 console.log('Invalid input or unresolvable domain');
+                alert('Invalid input or unresolvable domain')
             } else {
-                console.log('begin -> ', 'params:', params, 'settingsString:', settingsString);
-                // socket.emit('start_nexttrace', {params: params, settingsString: settingsString});
-                socket.emit('start_nexttrace', {ip: ip});
+                console.log('begin -> ', 'params:', params, 'settingsString:', extraSettings);
+                socket.emit('start_nexttrace', {ip: ip, extra: extraSettings});
             }
         }
 
@@ -354,29 +354,24 @@
         }
 
         function getValueFromLocalStorage(key) {
-            var value = localStorage.getItem(key);
-            return value ? value : "none";
+            var _value = localStorage.getItem(key);
+            return _value ? _value : null;
         }
 
-        function getFormattedSettingsString() {
-            var ipVersion = getValueFromLocalStorage("ipVersion");
-            var protocol = getValueFromLocalStorage("protocol");
-            var language = getValueFromLocalStorage("language");
-            var intervalSeconds = getValueFromLocalStorage("intervalSeconds");
-            var maxHop = getValueFromLocalStorage("maxHop");
-            var minHop = getValueFromLocalStorage("minHop");
-            var port = getValueFromLocalStorage("port");
-            var device = getValueFromLocalStorage("device");
+        function getFormattedSettings() {
+            var settings = {
+                ipVersion: getValueFromLocalStorage("ipVersion"),
+                protocol: getValueFromLocalStorage("protocol"),
+                language: getValueFromLocalStorage("language"),
+                intervalSeconds: getValueFromLocalStorage("intervalSeconds"),
+                maxHop: getValueFromLocalStorage("maxHop"),
+                minHop: getValueFromLocalStorage("minHop"),
+                port: getValueFromLocalStorage("port"),
+                device: getValueFromLocalStorage("device")
+            };
 
-            // Concatenating the values into a formatted string
-            return ipVersion + "|" +
-                protocol + "|" +
-                language + "|" +
-                intervalSeconds + "|" +
-                maxHop + "|" +
-                minHop + "|" +
-                port + "|" +
-                device;
+            // 将设置对象转换为JSON字符串
+            return JSON.stringify(settings);
         }
 
         function resolveDomain(domain) {
@@ -421,6 +416,10 @@
         }
 
         function parseDomain(domain) {
+            //判断domian 是不是IPv4
+            if ((domain.match(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/)) || (domain.match(/^[a-fA-F0-9:]+$/))) {
+                return domain;
+            }
             return new Promise((resolve, reject) => {
                 if (!domain || domain === "") {
                     console.error("Usage: Please provide a domain/ip/url.");
@@ -532,10 +531,10 @@
             <option value="en">English</option>
         </select>
         <br>
-        <label for="intervalTimeSlider">Interval Seconds:</label>
+        <label for="intervalTimeSlider">Probe Interval Seconds:</label>
         <div id="intervalTimeSlider" class="block-container">
-        <input type="range" id="intervalTimeRange" min="0.5" max="5" step="0.1" value="0.5">
-        <input type="number" id="intervalTimeInput" min="0.5" max="5" step="0.1" value="0.5">
+        <input type="range" id="intervalTimeRange" min="0.005" max="1" step="0.001" value="0.040">
+        <input type="number" id="intervalTimeInput" min="0.005" max="1" step="0.001" value="0.040">
         </div>
         <br>
         <label for="maxHopInput">Max Hop:</label>

@@ -9,7 +9,7 @@ from threading import Thread
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 app = Flask(__name__, static_folder='assets')
 app.config['SECRET_KEY'] = 'secret'
@@ -52,7 +52,7 @@ class NextTraceTask:
         self.process = None
 
     def run(self):
-        fixParam = '--map --raw -q 1 --send-time 1 --ttl-time 40'  # -d disable-geoip
+        fixParam = '--map --raw -q 1 --send-time 1'  # -d disable-geoip
         process_env = os.environ.copy()
         process_env['NEXTTRACE_UNINTERRUPTED'] = '1'
 
@@ -61,7 +61,7 @@ class NextTraceTask:
             self.socketio.emit('nexttrace_output', 'Invalid params', room=self.sid)
             self.socketio.emit('nexttrace_complete', room=self.sid)
             raise ValueError('Invalid params')
-
+        logging.debug(f"cmd: {[self.nexttrace_path] + self.params.split() + fixParam.split()}")
         self.process = subprocess.Popen(
             [self.nexttrace_path] + self.params.split() + fixParam.split(),
             stdout=subprocess.PIPE, universal_newlines=True, env=process_env
@@ -73,6 +73,7 @@ class NextTraceTask:
                 res = line_split[0:5] + [''.join(line_split[5:9])] + line_split[9:10]
                 if '||||||' in line:
                     res = line_split[0:1] + ['', '', '', '', '', '']
+                logging.debug(f"{res}")
                 res_str = json.dumps(obj=res, ensure_ascii=False)
                 logging.debug(f"{res_str}")
                 self.socketio.emit('nexttrace_output', res_str, room=self.sid)
@@ -113,17 +114,68 @@ def handle_disconnect():
 
 @socketio.on('start_nexttrace')
 def start_nexttrace(data):
-    logging.info(f"Client {request.sid} start nexttrace, params: {data}")
-    params = data['ip']
-    task = NextTraceTask(request.sid, socketio, params, nexttrace_path)
-    clients[request.sid] = task
-    # 更新客户端的最后活跃时间
-    client_last_active[request.sid] = time.time()
-    thread = Thread(target=task.run)
     try:
-        thread.start()
-    except ValueError:
-        logging.warning(f"Invalid params: {params}")
+        # 尝试将数据解析为JSON
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        # 确保数据是一个字典且包含 'ip' 键
+        if isinstance(data, dict) and 'ip' in data:
+            logging.info(f"Client {request.sid} start nexttrace, params: {data}")
+            params = data['ip']
+
+            data = data.get('extra')
+            if isinstance(data, str):
+                data = json.loads(data)
+            # 从 JSON 中提取其他参数
+            ipVersion = data.get('ipVersion')
+            if ipVersion == 'ipv4':
+                params += ' --ipv4'
+            elif ipVersion == 'ipv6':
+                params += ' --ipv6'
+            protocol = data.get('protocol')
+            if protocol == 'tcp':
+                params += ' --tcp'
+            elif protocol == 'udp':
+                params += ' --udp'
+            language = data.get('language')
+            if language == 'en':
+                params += ' --language en'
+            intervalSeconds = data.get('intervalSeconds')
+            if intervalSeconds:
+                params += f' --ttl-time {int(float(intervalSeconds) * 1000)}'
+            maxHop = data.get('maxHop')
+            if maxHop:
+                params += f' --max-hop {maxHop}'
+            minHop = data.get('minHop')
+            if minHop:
+                params += f' --min-hop {minHop}'
+            port = data.get('port')
+            if port:
+                params += f' --port {port}'
+            device = data.get('device')
+            if device:
+                device = device.strip()
+                pattern = re.compile(r'^[a-zA-Z]*\d*$')
+                if pattern.match(device):
+                    params += f' --dev {device}'
+
+            # 创建任务
+            task = NextTraceTask(request.sid, socketio, params, nexttrace_path)
+            clients[request.sid] = task
+            # 更新客户端的最后活跃时间
+            client_last_active[request.sid] = time.time()
+            # 启动线程
+            thread = Thread(target=task.run)
+            try:
+                thread.start()
+            except ValueError:
+                logging.warning(f"Invalid params: {params}")
+        else:
+            logging.warning(f"Invalid data format received: {data}")
+
+    except json.JSONDecodeError:
+        logging.warning(f"Received data is not valid JSON: {data}")
 
 
 @socketio.on('stop_nexttrace')
