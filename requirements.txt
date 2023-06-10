@@ -1,2 +1,3 @@
 Flask-SocketIO==5.3.4
 Flask==2.3.2
+eventlet~=0.33.3

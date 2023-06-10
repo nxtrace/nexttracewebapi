@@ -8,6 +8,9 @@ from threading import Thread
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
+import eventlet
+
+eventlet.monkey_patch()
 
 # 从环境变量中读取日志级别
 log_level = os.environ.get('NTWA_LOG_LEVEL', 'INFO').upper()
@@ -202,4 +205,4 @@ def stop_nexttrace():
 
 
 if __name__ == '__main__':
-    socketio.run(app, '127.0.0.1', 35000, allow_unsafe_werkzeug=True)
+    socketio.run(app, '127.0.0.1', 35000)
