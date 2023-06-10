@@ -123,7 +123,13 @@ def start_nexttrace(data):
         if isinstance(data, dict) and 'ip' in data:
             logging.info(f"Client {request.sid} start nexttrace, params: {data}")
             params = data['ip']
-
+            if params:
+                dst = params.strip()
+                pattern0 = re.compile(r'^[a-fA-F0-9:]+$')
+                pattern1 = re.compile(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
+                if not (pattern0.match(dst) or pattern1.match(dst)):
+                    logging.warning(f"Invalid dst: {params}")
+                    return
             data = data.get('extra')
             if isinstance(data, str):
                 data = json.loads(data)
@@ -146,10 +152,10 @@ def start_nexttrace(data):
                 params += f' --ttl-time {int(float(intervalSeconds) * 1000)}'
             maxHop = data.get('maxHop')
             if maxHop:
-                params += f' --max-hop {maxHop}'
+                params += f' --max-hops {maxHop}'
             minHop = data.get('minHop')
             if minHop:
-                params += f' --min-hop {minHop}'
+                params += f' --first {minHop}'
             port = data.get('port')
             if port:
                 params += f' --port {port}'

@@ -41,7 +41,7 @@
                 console.log('Invalid input or unresolvable domain');
                 alert('Invalid input or unresolvable domain')
             } else {
-                console.log('begin -> ', 'params:', params, 'settingsString:', extraSettings);
+                console.log('begin -> ', 'dst:', ip, 'settingsString:', extraSettings);
                 socket.emit('start_nexttrace', {ip: ip, extra: extraSettings});
             }
         }
@@ -330,27 +330,28 @@
         }
 
         function resetForm() {
+            stopNexttrace()
             // 重置输入框
             document.getElementById("params").value = "";
 
             // 清空动态添加的表格行
             var tableBody = document.querySelector("#output tbody");
             tableBody.innerHTML = `
-          <th>HOP</th>
-          <th>IP</th>
-          <th>ASN</th>
-          <th>LOCATION</th>
-          <th>DOMAIN</th>
-          <th>LOSS%</th>
-          <th>SENT</th>
-          <th>LAST</th>
-          <th>AVG</th>
-          <th>BEST</th>
-          <th>WORST</th>
-          <th>STDEV</th>
-          <th>PTR</th>
-          <!-- 暂时搁置       <th>CHART</th>-->
-        `;
+              <th>HOP</th>
+              <th>IP</th>
+              <th>ASN</th>
+              <th>LOCATION</th>
+              <th>DOMAIN</th>
+              <th>LOSS%</th>
+              <th>SENT</th>
+              <th>LAST</th>
+              <th>AVG</th>
+              <th>BEST</th>
+              <th>WORST</th>
+              <th>STDEV</th>
+              <th>PTR</th>
+              <!-- 暂时搁置       <th>CHART</th>-->
+            `;
         }
 
         function getValueFromLocalStorage(key) {
@@ -386,7 +387,7 @@
                 } else {
                     types = ['A']; // 默认只查询IPv4
                 }
-
+                var resolvedAddresses = [];
                 var resolvedAddress = null;
                 var promises = types.map(function(type) {
                     // 使用Cloudflare的公开DNS解析服务
@@ -398,10 +399,10 @@
                         })
                         .then(function(data) {
                             if (data && data.Answer && data.Answer.length > 0) {
-                                var ipAddress = data.Answer[0].data;
-                                console.log('IP地址:', ipAddress, '类型:', type);
-                                if (!resolvedAddress) {
-                                    resolvedAddress = ipAddress;
+                                for (var i = 0; i < data.Answer.length; i++) {
+                                    var ipAddress = data.Answer[i].data;
+                                    console.log('IP地址:', ipAddress, '类型:', type);
+                                    resolvedAddresses.push(ipAddress);
                                 }
                             } else {
                                 console.log('未能解析域名,', 'type:', type, 'domain:', domain);
@@ -410,7 +411,44 @@
                 });
 
                 Promise.all(promises).then(() => {
-                    resolve(resolvedAddress);
+                    if (resolvedAddresses.length > 1) {
+                        // Show modal and let user choose IP address
+                        var modal = document.getElementById("ipSelector");
+                        var span = document.getElementsByClassName("close")[0];
+
+                        // Populate IP list
+                        var ipListDiv = document.getElementById("ip-list");
+                        ipListDiv.innerHTML = '';
+                        resolvedAddresses.forEach(ipAddress => {
+                            var ipElement = document.createElement("div");
+                            ipElement.innerHTML = ipAddress;
+                            ipElement.onclick = function() {
+                                resolve(ipAddress);
+                                modal.style.display = "none";
+                            };
+                            ipListDiv.appendChild(ipElement);
+                        });
+
+                        // Show modal
+                        modal.style.display = "block";
+
+                        // When user clicks on close, hide the modal
+                        span.onclick = function() {
+                            modal.style.display = "none";
+                            resolve(null);
+                        };
+
+                        // When user clicks outside of the modal, close it
+                        window.onclick = function(event) {
+                            if (event.target === modal) {
+                                modal.style.display = "none";
+                                resolve(null);
+                            }
+                        };
+                    } else {
+                        // If there is only one IP or none, resolve immediately
+                        resolve(resolvedAddresses[0] || null);
+                    }
                 });
             });
         }
@@ -497,7 +535,26 @@
         background-color: midnightblue;
         color: white;
     }
-
+    /*IP选择框开始*/
+    .modal {
+        display: none;
+    }
+    .modal-content {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px;
+        background-color: midnightblue;
+        box-shadow: 0 2px 3px mediumpurple;
+    }
+    .close {
+        float: right;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    /*END*/
 </style>
 
 <body>
@@ -556,8 +613,11 @@
         <br>
         <button id="saveBtn">Save</button>
     </div>
-
-
+    <div id="ipSelector" class="modal-content">
+        <span class="close">&times;</span>
+        <p>请选择一个IP地址:</p>
+        <div id="ip-list"></div>
+    </div>
 </form>
 <table id="output" class="pingtable">
     <tbody>
@@ -580,6 +640,9 @@
     <!-- Data rows will be dynamically inserted here -->
     </tbody>
 </table>
+
+
+
 <script>
     var settingBtn = document.getElementById("settingBtn");
     var settingMenu = document.getElementById("settingMenu");
