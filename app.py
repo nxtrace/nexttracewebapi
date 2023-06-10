@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import subprocess
@@ -41,11 +42,11 @@ Thread(target=check_timeouts, daemon=True).start()
 
 
 class NextTraceTask:
-    def __init__(self, sid, socketio, params, nexttrace_path):
+    def __init__(self, sid, _socketio, params, _nexttrace_path):
         self.sid = sid
-        self.socketio = socketio
+        self.socketio = _socketio
         self.params = params
-        self.nexttrace_path = nexttrace_path
+        self.nexttrace_path = _nexttrace_path
         self.process = None
 
     def run(self):
@@ -65,7 +66,7 @@ class NextTraceTask:
                 if '||||||' in line:
                     res = line_split[0:1] + ['', '', '', '', '', '']
                 res_str = json.dumps(obj=res, ensure_ascii=False)
-                print(res_str)
+                logging.debug(f"{res_str}")
                 self.socketio.emit('nexttrace_output', res_str, room=self.sid)
                 client_last_active[self.sid] = time.time()  # 更新客户端的最后活跃时间
 
@@ -92,13 +93,13 @@ def css():
 
 @socketio.on('connect')
 def handle_connect():
-    print(f'Client {request.sid} connected')
+    logging.info(f'Client {request.sid} connected')
     client_last_active[request.sid] = time.time()
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print('Client disconnected')
+    logging.info(f'Client {request.sid} disconnected')
     stop_nexttrace_for_sid(request.sid)
 
 
@@ -119,4 +120,4 @@ def stop_nexttrace():
 
 
 if __name__ == '__main__':
-    socketio.run(app, '0.0.0.0', 35000, allow_unsafe_werkzeug=True)
+    socketio.run(app, '127.0.0.1', 35000, allow_unsafe_werkzeug=True)

@@ -37,9 +37,9 @@ COPY nginx.conf /etc/nginx/nginx.conf
 WORKDIR /app
 
 # Copy start.sh to the container
-COPY start.sh /app/start.sh
+COPY entrypoint.sh /app/entrypoint.sh
 
 EXPOSE 30080
 
-# Use start.sh to start Python app and Nginx
-CMD ["/app/start.sh"]
+# 设置脚本作为入口点
+ENTRYPOINT ["/app/entrypoint.sh"]
