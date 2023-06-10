@@ -28,7 +28,7 @@
 
         function startNexttrace() {
             var params = document.getElementById("params").value;
-
+            localStorage.setItem("protocol", document.getElementById("protocol").value);
             socket.emit('start_nexttrace', {params: params});
         }
 
@@ -189,7 +189,6 @@
                 rows[i].style.display = 'none';
             }
         }
-
 
         function addDataRow(table, cells, latencyLast, latencyAvg, count, lossPktSum) {
             // console.log("cells array:", cells);
@@ -459,7 +458,6 @@
     </tbody>
 </table>
 <script>
-
     var settingBtn = document.getElementById("settingBtn");
     var settingMenu = document.getElementById("settingMenu");
     var saveBtn = document.getElementById("saveBtn");
@@ -491,9 +489,45 @@
         event.preventDefault(); // 阻止按钮默认的提交行为
 
 
-        // TODO: 在这里处理保存按钮的逻辑
+        // Save settings to localStorage
+        localStorage.setItem("language", document.getElementById("language").value);
+        localStorage.setItem("intervalSeconds", document.getElementById("intervalTimeInput").value);
+        localStorage.setItem("maxHop", document.getElementById("maxHopInput").value);
+        localStorage.setItem("minHop", document.getElementById("minHopInput").value);
+        localStorage.setItem("port", document.getElementById("portInput").value);
+        localStorage.setItem("device", document.getElementById("devInput").value);
+        localStorage.setItem("localResolve", document.getElementById("localResolveCheckbox").checked);
 
         settingMenu.style.display = "none";
+    });
+    document.addEventListener("DOMContentLoaded", function(event) {
+        // Load settings from localStorage
+        if(localStorage.getItem("protocol")) {
+            document.getElementById("protocol").value = localStorage.getItem("protocol");
+        }
+        if(localStorage.getItem("language")) {
+            document.getElementById("language").value = localStorage.getItem("language");
+        }
+        if(localStorage.getItem("intervalSeconds")) {
+            var intervalSeconds = localStorage.getItem("intervalSeconds");
+            document.getElementById("intervalTimeInput").value = intervalSeconds;
+            document.getElementById("intervalTimeRange").value = intervalSeconds;
+        }
+        if(localStorage.getItem("maxHop")) {
+            document.getElementById("maxHopInput").value = localStorage.getItem("maxHop");
+        }
+        if(localStorage.getItem("minHop")) {
+            document.getElementById("minHopInput").value = localStorage.getItem("minHop");
+        }
+        if(localStorage.getItem("port")) {
+            document.getElementById("portInput").value = localStorage.getItem("port");
+        }
+        if(localStorage.getItem("device")) {
+            document.getElementById("devInput").value = localStorage.getItem("device");
+        }
+        if(localStorage.getItem("localResolve")) {
+            document.getElementById("localResolveCheckbox").checked = JSON.parse(localStorage.getItem("localResolve"));
+        }
     });
 
 </script>
