@@ -7,10 +7,16 @@ on:
       - master
     paths:
       - "**/*.py"
+      - "**/*.html"
+      - "**/*.css"
+      - "nginx.conf"
+      - "Dockerfile"
+      - "entrypoint.sh"
       - "requirements.txt"
 
 jobs:
   docker:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
