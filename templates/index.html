@@ -636,6 +636,14 @@
         settingMenu.style.display = "none";
     });
     document.addEventListener("DOMContentLoaded", function(event) {
+        // Check if localResolve is in localStorage
+        if (localStorage.getItem("localResolve") === null) {
+            // If not, set the default value to true
+            localStorage.setItem("localResolve", true);
+        }
+        // Set the checkbox state based on the localStorage value
+        document.getElementById("localResolveCheckbox").checked = JSON.parse(localStorage.getItem("localResolve"));
+
         // Load settings from localStorage
         if(localStorage.getItem("protocol")) {
             document.getElementById("protocol").value = localStorage.getItem("protocol");
