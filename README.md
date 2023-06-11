@@ -8,8 +8,14 @@
 
 NEXTTRACE项目派生的仓库，用于实现简易的NEXTTRACE WEB API服务端
 
-<img width="1436" alt="截屏2023-06-11 05 06 35" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/a2a4cbdd-5e0c-401a-ac02-bbccf463c013">
-<img width="352" alt="截屏2023-06-11 05 05 16" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/f36924d1-37f8-4eca-bb6c-41800283c628">
+<img width="1440" alt="截屏2023-06-12 00 24 06" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/798554e2-190e-4425-9527-3a11708dafd8">
+<p align="center">
+  <img width="443" alt="截屏2023-06-12 00 12 57" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/1eb4b6ce-3ed9-4728-be85-fbdabc5803bd">
+  <img width="721" alt="截屏2023-06-12 00 26 22" src="https://github.com/tsosunchia/nexttracewebapi/assets/59512455/a0563bfc-37a8-417a-89bf-3ab87ef44d6d">
+</p>
+
+
+
 
 请注意，本项目使用了websocket作为通信协议，因此请在配置反代时参考仓库内的代码(本仓库提供的Docker Image 已内置 Nginx 反代)。
 
