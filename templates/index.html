@@ -85,6 +85,7 @@
 
 
         function stopNexttrace() {
+            dataMap = {}
             socket.emit('stop_nexttrace');
         }
 
@@ -367,29 +368,26 @@
 
         function resetForm() {
             stopNexttrace()
-            window.location.reload()
-            // TODO: 不reload 进行重置
-            // // 重置输入框
-            // document.getElementById("params").value = "";
-            //
-            // // 清空动态添加的表格行
-            // var tableBody = document.querySelector("#output tbody");
-            // tableBody.innerHTML = `
-            //   <th>HOP</th>
-            //   <th>IP</th>
-            //   <th>ASN</th>
-            //   <th>LOCATION</th>
-            //   <th>DOMAIN</th>
-            //   <th>LOSS%</th>
-            //   <th>SENT</th>
-            //   <th>LAST</th>
-            //   <th>AVG</th>
-            //   <th>BEST</th>
-            //   <th>WORST</th>
-            //   <th>STDEV</th>
-            //   <th>PTR</th>
-            //   <!-- 暂时搁置       <th>CHART</th>-->
-            // `;
+            // 重置输入框
+            document.getElementById("params").value = "";
+            // 清空动态添加的表格行
+            var tableBody = document.querySelector("#output tbody");
+            tableBody.innerHTML = `
+              <th>HOP</th>
+              <th>IP</th>
+              <th>ASN</th>
+              <th>LOCATION</th>
+              <th>DOMAIN</th>
+              <th>LOSS%</th>
+              <th>SENT</th>
+              <th>LAST</th>
+              <th>AVG</th>
+              <th>BEST</th>
+              <th>WORST</th>
+              <th>STDEV</th>
+              <th>PTR</th>
+              <!-- 暂时搁置       <th>CHART</th>-->
+            `;
         }
 
         function getValueFromLocalStorage(key) {
