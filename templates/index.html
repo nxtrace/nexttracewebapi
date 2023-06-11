@@ -367,27 +367,29 @@
 
         function resetForm() {
             stopNexttrace()
-            // 重置输入框
-            document.getElementById("params").value = "";
-
-            // 清空动态添加的表格行
-            var tableBody = document.querySelector("#output tbody");
-            tableBody.innerHTML = `
-              <th>HOP</th>
-              <th>IP</th>
-              <th>ASN</th>
-              <th>LOCATION</th>
-              <th>DOMAIN</th>
-              <th>LOSS%</th>
-              <th>SENT</th>
-              <th>LAST</th>
-              <th>AVG</th>
-              <th>BEST</th>
-              <th>WORST</th>
-              <th>STDEV</th>
-              <th>PTR</th>
-              <!-- 暂时搁置       <th>CHART</th>-->
-            `;
+            window.location.reload()
+            // TODO: 不reload 进行重置
+            // // 重置输入框
+            // document.getElementById("params").value = "";
+            //
+            // // 清空动态添加的表格行
+            // var tableBody = document.querySelector("#output tbody");
+            // tableBody.innerHTML = `
+            //   <th>HOP</th>
+            //   <th>IP</th>
+            //   <th>ASN</th>
+            //   <th>LOCATION</th>
+            //   <th>DOMAIN</th>
+            //   <th>LOSS%</th>
+            //   <th>SENT</th>
+            //   <th>LAST</th>
+            //   <th>AVG</th>
+            //   <th>BEST</th>
+            //   <th>WORST</th>
+            //   <th>STDEV</th>
+            //   <th>PTR</th>
+            //   <!-- 暂时搁置       <th>CHART</th>-->
+            // `;
         }
 
         function getValueFromLocalStorage(key) {
@@ -412,6 +414,15 @@
             return JSON.stringify(settings);
         }
 
+        function fetchWithTimeout(url, options, timeout = 3000) {
+            return Promise.race([
+                fetch(url, options),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('请求超时')), timeout)
+                )
+            ]);
+        }
+
         function resolveDomain(domain) {
             return new Promise((resolve, reject) => {
                 var ipVersion = getValueFromLocalStorage("ipVersion");
@@ -425,28 +436,36 @@
                     types = ['A']; // 默认只查询IPv4
                 }
                 var resolvedAddresses = [];
-                var promises = types.map(function(type) {
-                    // 使用Cloudflare的公开DNS解析服务
-                    return fetch('https://cloudflare-dns.com/dns-query?name=' + domain + '&type=' + type, {
-                        headers: {'accept': 'application/dns-json'}
-                    })
-                        .then(function(response) {
-                            return response.json();
-                        })
-                        .then(function(data) {
-                            if (data && data.Answer && data.Answer.length > 0) {
-                                for (var i = 0; i < data.Answer.length; i++) {
-                                    var ipAddress = data.Answer[i].data;
-                                    console.log('IP地址:', ipAddress, '类型:', type);
-                                    resolvedAddresses.push(ipAddress);
-                                }
-                            } else {
-                                console.log('未能解析域名,', 'type:', type, 'domain:', domain);
-                            }
-                        });
-                });
 
-                Promise.all(promises).then(() => {
+                function doResolve(dnsUrl) {
+                    var promises = types.map(function (type) {
+                        return fetchWithTimeout(dnsUrl + '?name=' + domain + '&type=' + type, {
+                            headers: { 'accept': 'application/dns-json' }
+                        }, 3000) // 设置超时时间为 3 秒
+                            .then(function (response) {
+                                return response.json();
+                            })
+                            .then(function (data) {
+                                if (data && data.Answer && data.Answer.length > 0) {
+                                    for (var i = 0; i < data.Answer.length; i++) {
+                                        var ipAddress = data.Answer[i].data;
+                                        console.log('IP地址:', ipAddress, '类型:', type);
+                                        resolvedAddresses.push(ipAddress);
+                                    }
+                                } else {
+                                    console.log('未能解析域名,', 'type:', type, 'domain:', domain);
+                                }
+                            });
+                    });
+
+                    return Promise.all(promises);
+                }
+
+                // 尝试使用 Cloudflare
+                doResolve('https://cloudflare-dns.com/dns-query').catch(() => {
+                    console.log('使用 Cloudflare 失败，尝试使用 doh.sb');
+                    return doResolve('https://doh.sb/dns-query');
+                }).then(() => {
                     if (resolvedAddresses.length > 1) {
                         // Show modal and let user choose IP address
                         var modal = document.getElementById("ipSelector");
@@ -458,7 +477,7 @@
                         resolvedAddresses.forEach(ipAddress => {
                             var ipElement = document.createElement("div");
                             ipElement.innerHTML = ipAddress;
-                            ipElement.onclick = function() {
+                            ipElement.onclick = function () {
                                 resolve(ipAddress);
                                 modal.style.display = "none";
                             };
@@ -469,13 +488,13 @@
                         modal.style.display = "block";
 
                         // When user clicks on close, hide the modal
-                        span.onclick = function() {
+                        span.onclick = function () {
                             modal.style.display = "none";
                             resolve(null);
                         };
 
                         // When user clicks outside of the modal, close it
-                        window.onclick = function(event) {
+                        window.onclick = function (event) {
                             if (event.target === modal) {
                                 modal.style.display = "none";
                                 resolve(null);
@@ -485,9 +504,13 @@
                         // If there is only one IP or none, resolve immediately
                         resolve(resolvedAddresses[0] || null);
                     }
+                }).catch(() => {
+                    // 在此处显示一个错误消息
+                    alert('无法解析域名，请检查你与DOH服务器的连接或尝试使用使用SERVER RESOLVE模式(您可以在SETTINGS中关闭LOCAL RESOLVE).');
                 });
             });
         }
+
 
         function parseDomain(domain) {
             //判断domian 是不是IPv4
