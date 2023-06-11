@@ -27,6 +27,43 @@
             console.log('Nexttrace complete');
         });
 
+        socket.on('nexttrace_options', function (data) {
+            console.log('Nexttrace options', data);
+
+            // Show modal and let user choose IP address
+            var modal = document.getElementById("ipSelector");
+            var span = document.getElementsByClassName("close")[0];
+
+            // Populate IP list
+            var ipListDiv = document.getElementById("ip-list");
+            ipListDiv.innerHTML = '';
+            data.forEach((ipAddress, index) => {
+                var ipElement = document.createElement("div");
+                ipElement.innerHTML = ipAddress;
+                ipElement.onclick = function () {
+                    var option = index + 1; // store the index in option variable, +1 to make it 1-based
+                    socket.emit('nexttrace_options_choice', {"choice": option}); // emit the choice
+                    modal.style.display = "none";
+                };
+                ipListDiv.appendChild(ipElement);
+            });
+
+            // Show modal
+            modal.style.display = "block";
+
+            // When user clicks on close, hide the modal
+            span.onclick = function () {
+                modal.style.display = "none";
+            };
+
+            // When user clicks outside of the modal, close it
+            modal.onclick = function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            };
+        });
+
         async function startNexttrace() {
             var params = document.getElementById("params").value;
             localStorage.setItem("ipVersion", document.getElementById("ipVersion").value);

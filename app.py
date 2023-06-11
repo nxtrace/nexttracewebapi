@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import subprocess
+import threading
 import time
 from threading import Thread
 
@@ -50,9 +51,33 @@ def stop_nexttrace_for_sid(sid):
         socketio.emit('nexttrace_complete', room=sid)
         if sid in clients:
             del clients[sid]
+            logging.debug(f"Client {sid} removed from clients dictionary after process termination")
 
 
 Thread(target=check_timeouts, daemon=True).start()
+
+
+class OutputMonitor:
+    def __init__(self, process):
+        self.process = process
+        self.last_output_time = time.time()
+        self.lock = threading.Lock()
+
+    def monitor(self, line):
+        with self.lock:
+            self.last_output_time = time.time()
+
+    def start_newline_inserter(self, timeout):
+        def insert_newline():
+            while True:
+                time.sleep(1)
+                with self.lock:
+                    if time.time() - self.last_output_time > timeout:
+                        os.write(self.process.stdin.fileno(), b'\n')
+                        self.process.stdin.flush()
+
+        t = Thread(target=insert_newline, daemon=True)
+        t.start()
 
 
 class NextTraceTask:
@@ -68,6 +93,9 @@ class NextTraceTask:
         process_env = os.environ.copy()
         process_env['NEXTTRACE_UNINTERRUPTED'] = '1'
 
+        # DNS options
+        options = []
+
         pattern = re.compile(r'[&;<>\"\'()|\[\]{}$#!%*+=]')
         if pattern.search(self.params):
             self.socketio.emit('nexttrace_output', 'Invalid params', room=self.sid)
@@ -76,24 +104,39 @@ class NextTraceTask:
         logging.debug(f"cmd: {[self.nexttrace_path] + self.params.split() + fixParam.split()}")
         self.process = subprocess.Popen(
             [self.nexttrace_path] + self.params.split() + fixParam.split(),
-            stdout=subprocess.PIPE, universal_newlines=True, env=process_env
+            stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, env=process_env, bufsize=1
         )
+        output_monitor = OutputMonitor(self.process)
+        output_monitor.start_newline_inserter(timeout=5)  # 5 seconds
 
         for line in iter(self.process.stdout.readline, ''):
-            if re.match(r'^\d+\|', line):
+            if re.match(r'^Your Option:.*$', line):
+                logging.debug(f"nexttrace_options: {options}")
+                self.socketio.emit('nexttrace_options', options, room=self.sid)
+                options = []
+            if re.match(r'^\d+\..*$', line):
+                options.append(line.split()[1])
+            elif re.match(r'^\d+\|', line):
                 line_split = line.split('|')
                 res = line_split[0:5] + [''.join(line_split[5:9])] + line_split[9:10]
                 if '||||||' in line:
                     res = line_split[0:1] + ['', '', '', '', '', '']
                 logging.debug(f"{res}")
                 res_str = json.dumps(obj=res, ensure_ascii=False)
-                logging.debug(f"{res_str}")
+                logging.debug(f"nexttrace_output: {res_str}")
                 self.socketio.emit('nexttrace_output', res_str, room=self.sid)
                 client_last_active[self.sid] = time.time()  # 更新客户端的最后活跃时间
 
             if self.process.poll() is not None:
                 self.socketio.emit('nexttrace_complete', room=self.sid)
                 break
+
+    def process_input(self, data):
+        if self.process:
+            self.process.stdin.write(data)
+            self.process.stdin.flush()
+        else:
+            logging.warning('want to input but Process not started')
 
 
 @app.route('/')
@@ -139,7 +182,8 @@ def start_nexttrace(data):
                 dst = params.strip()
                 pattern0 = re.compile(r'^[a-fA-F0-9:]+$')
                 pattern1 = re.compile(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
-                pattern2 = re.compile(r'^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$')
+                pattern2 = re.compile(
+                    r'^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$')
                 if not (pattern0.match(dst) or pattern1.match(dst) or pattern2.match(dst)) or len(dst) > 127:
                     logging.warning(f"Invalid dst: {params}")
                     return
@@ -205,10 +249,34 @@ def stop_nexttrace():
     stop_nexttrace_for_sid(request.sid)
 
 
+@socketio.on('nexttrace_options_choice')
+def nexttrace_options_choice(data):
+    try:
+        if isinstance(data, str):
+            data = json.loads(data)
+        if isinstance(data, dict) and 'choice' in data:
+            choice = data['choice']
+            if isinstance(choice, int):
+                logging.info(f"Client {request.sid} choose option {choice}")
+                choice_str = f"{choice}\n"  # Convert choice to string and append newline character
+                task = clients.get(request.sid)
+                if task:
+                    logging.debug(f"Client {request.sid} send choice {choice_str}")
+                    task.process_input(choice_str)
+                else:
+                    logging.debug(f"Client want to send choice {choice_str}, but {request.sid} not found")
+            else:
+                logging.warning(f"Invalid choice format: {choice}")
+        else:
+            logging.warning(f"Invalid data format received: {data}")
+    except json.JSONDecodeError:
+        logging.warning(f"Received data is not valid JSON: {data}")
+
+
 if __name__ == '__main__':
     # 从环境变量中读取主机和端口，如果环境变量不存在，使用默认值'127.0.0.1'和35000
     host = os.environ.get('TEST_HOST', '127.0.0.1')
-    port = int(os.environ.get('TEST_PORT', 35000))
+    _port = int(os.environ.get('TEST_PORT', 35000))
 
     # 使用从环境变量中读取的主机和端口运行应用
-    socketio.run(app, host, port)
+    socketio.run(app, host, _port)
