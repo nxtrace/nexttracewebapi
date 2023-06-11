@@ -139,7 +139,8 @@ def start_nexttrace(data):
                 dst = params.strip()
                 pattern0 = re.compile(r'^[a-fA-F0-9:]+$')
                 pattern1 = re.compile(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
-                if not (pattern0.match(dst) or pattern1.match(dst)):
+                pattern2 = re.compile(r'^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$')
+                if not (pattern0.match(dst) or pattern1.match(dst) or pattern2.match(dst)) or len(dst) > 127:
                     logging.warning(f"Invalid dst: {params}")
                     return
             data = data.get('extra')
@@ -178,7 +179,7 @@ def start_nexttrace(data):
             if device:
                 device = device.strip()
                 pattern = re.compile(r'^[a-zA-Z]*\d*$')
-                if pattern.match(device):
+                if pattern.match(device) and len(device) < 128:
                     params += f' --dev {device}'
 
             # 创建任务
