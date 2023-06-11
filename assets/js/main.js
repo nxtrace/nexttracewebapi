@@ -57,6 +57,9 @@ socket.on('nexttrace_options', function (data) {
 
 async function startNexttrace() {
     var params = document.getElementById("params").value;
+    stopNexttrace()
+    // 重置表格
+    initTable();
     localStorage.setItem("ipVersion", document.getElementById("ipVersion").value);
     localStorage.setItem("protocol", document.getElementById("protocol").value);
     var extraSettings = getFormattedSettings();
@@ -362,6 +365,11 @@ function resetForm() {
     stopNexttrace()
     // 重置输入框
     document.getElementById("params").value = "";
+    // 重置表格
+    initTable();
+}
+
+function initTable() {
     // 清空动态添加的表格行
     var tableBody = document.querySelector("#output tbody");
     tableBody.innerHTML = `
