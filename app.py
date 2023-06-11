@@ -146,22 +146,6 @@ class NextTraceTask:
             logging.warning('want to input but Process not started')
 
 
-@app.route('/')
-def index():
-    return render_template('index.html'), 200
-
-
-# 返回在assets文件夹下的roboto-mono-latin.woff2字体文件
-@app.route('/font/roboto-mono-latin.woff2')
-def font():
-    return app.send_static_file('roboto-mono-latin.woff2'), 200
-
-
-@app.route('/css/m.css')
-def css():
-    return app.send_static_file('m.css'), 200
-
-
 @socketio.on('connect')
 def handle_connect():
     logging.info(f'Client {request.sid} connected')
@@ -278,6 +262,11 @@ def nexttrace_options_choice(data):
             logging.warning(f"Invalid data format received: {data}")
     except json.JSONDecodeError:
         logging.warning(f"Received data is not valid JSON: {data}")
+
+
+@app.route('/')
+def index():
+    return render_template('index.html'), 200
 
 
 if __name__ == '__main__':
