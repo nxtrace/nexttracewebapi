@@ -78,7 +78,6 @@ async function startNexttrace() {
     }
 }
 
-
 function stopNexttrace() {
     dataMap = {}
     socket.emit('stop_nexttrace');
@@ -309,48 +308,48 @@ function handleKeyPress(event) {
     }
 }
 
-function getRGB ( latency ) {
+function getRGB(latency) {
     var result = [];
-    result [ 'r' ] = 0;
-    result [ 'g' ] = 0;
-    result [ 'b' ] = 0;
-    if ( isNaN ( latency ) || latency === 0 ) {
+    result ['r'] = 0;
+    result ['g'] = 0;
+    result ['b'] = 0;
+    if (isNaN(latency) || latency === 0) {
         return result;
     }
-    var color_r = Math.round ( ( latency - 180 ) / 2 );
+    var color_r = Math.round((latency - 180) / 2);
     //var color_r = Math.round ( 0.000001 * Math.pow ( latency - 150, 3.3 ) );
-    if ( color_r < 0 ) color_r = 0;
-    if ( color_r > 100 ) color_r = 100;
+    if (color_r < 0) color_r = 0;
+    if (color_r > 100) color_r = 100;
 
     //var color_g = Math.round ( ( 200 - latency  / 1.2 ) );
     // https://www.desmos.com/calculator
     // y = 55 - 0.0000075 * x^3
-    var color_g = Math.round (40 - 0.000005 * Math.pow ( latency, 3 ) );
-    if ( color_g < 0 ) color_g = 0;
-    if ( color_g > 40 ) color_g = 40;
+    var color_g = Math.round(40 - 0.000005 * Math.pow(latency, 3));
+    if (color_g < 0) color_g = 0;
+    if (color_g > 40) color_g = 40;
     var color_b = 0;
-    result [ 'r' ] = color_r;
-    result [ 'g' ] = color_g;
-    result [ 'b' ] = color_b;
+    result ['r'] = color_r;
+    result ['g'] = color_g;
+    result ['b'] = color_b;
     return result;
 }
 
-function getRGBstdev ( stdev ) {
+function getRGBstdev(stdev) {
     var result = [];
-    result [ 'r' ] = 0;
-    result [ 'g' ] = 0;
-    result [ 'b' ] = 0;
-    if ( isNaN ( stdev ) || stdev === 0 ) {
+    result ['r'] = 0;
+    result ['g'] = 0;
+    result ['b'] = 0;
+    if (isNaN(stdev) || stdev === 0) {
         return result;
     }
-    var color_r = Math.round ( ( stdev - 5 ) * 4 )  ;
-    if ( color_r < 0 ) color_r = 0;
-    if ( color_r > 100 ) color_r = 100;
+    var color_r = Math.round((stdev - 5) * 4);
+    if (color_r < 0) color_r = 0;
+    if (color_r > 100) color_r = 100;
     var color_g = 0;
     var color_b = 0;
-    result [ 'r' ] = color_r;
-    result [ 'g' ] = color_g;
-    result [ 'b' ] = color_b;
+    result ['r'] = color_r;
+    result ['g'] = color_g;
+    result ['b'] = color_b;
     return result;
 }
 
@@ -438,7 +437,7 @@ function resolveDomain(domain) {
         function doResolve(dnsUrl) {
             var promises = types.map(function (type) {
                 return fetchWithTimeout(dnsUrl + '?name=' + domain + '&type=' + type, {
-                    headers: { 'accept': 'application/dns-json' }
+                    headers: {'accept': 'application/dns-json'}
                 }, 3000) // 设置超时时间为 3 秒
                     .then(function (response) {
                         return response.json();

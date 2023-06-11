@@ -32,16 +32,17 @@
     background-color: midnightblue;
 }
 
-.floating-menu input
-{
+.floating-menu input {
     margin-bottom: 5px;
     background-color: midnightblue;
     color: white;
 }
+
 /*IP选择框开始*/
 .modal {
     display: none;
 }
+
 .modal-content {
     display: none;
     position: absolute;
@@ -52,11 +53,13 @@
     background-color: midnightblue;
     box-shadow: 0 2px 3px mediumpurple;
 }
+
 .close {
     float: right;
     font-size: 20px;
     cursor: pointer;
 }
+
 /*END*/
 
 @font-face {
