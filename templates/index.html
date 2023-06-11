@@ -19,7 +19,6 @@
 
         socket.on('nexttrace_output', function (data) {
             var outputTable = document.getElementById('output');
-            // initTable();
             mergeDataAndAddOrUpdateRow(outputTable, data);
         });
 
@@ -90,7 +89,6 @@
         }
 
         function mergeDataAndAddOrUpdateRow(table, cells) {
-            // var tbody = table.getElementsByTagName('tbody')[0];
             var parsedData = JSON.parse(cells); // 解析接收到的JSON列表
             var hop = parsedData[0];
             var latency = parseFloat(parsedData[3]);
@@ -427,7 +425,6 @@
                     types = ['A']; // 默认只查询IPv4
                 }
                 var resolvedAddresses = [];
-                var resolvedAddress = null;
                 var promises = types.map(function(type) {
                     // 使用Cloudflare的公开DNS解析服务
                     return fetch('https://cloudflare-dns.com/dns-query?name=' + domain + '&type=' + type, {

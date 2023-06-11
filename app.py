@@ -39,6 +39,7 @@ def check_timeouts():
     while True:
         for sid, last_active in list(client_last_active.items()):
             if time.time() - last_active > time_limit:
+                logging.debug(f"Client {sid} timed out")
                 stop_nexttrace_for_sid(sid)
                 del client_last_active[sid]
         time.sleep(1)
@@ -116,12 +117,12 @@ class NextTraceTask:
         output_monitor_flag = True
 
         for line in iter(self.process.stdout.readline, ''):
+            logging.debug(f"line: {line}")
             if re.match(r'^\d+\..*$', line):
                 options.append(line.split()[1])
                 if output_monitor_flag:
                     output_monitor.start_newline_inserter(timeout=0.1)  # 0.1 seconds
                     output_monitor_flag = False
-
             elif re.match(r'^\d+\|', line):
                 line_split = line.split('|')
                 res = line_split[0:5] + [''.join(line_split[5:9])] + line_split[9:10]
