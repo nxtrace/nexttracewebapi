@@ -49,7 +49,7 @@ saveBtn.addEventListener("click", function (event) {
 
     settingMenu.style.display = "none";
 });
-document.addEventListener("DOMContentLoaded", function (event) {
+document.addEventListener("DOMContentLoaded", async function (event) {
     // Check if localResolve is in localStorage
     if (localStorage.getItem("localResolve") === null) {
         // If not, set the default value to true
@@ -89,5 +89,16 @@ document.addEventListener("DOMContentLoaded", function (event) {
     }
     if (localStorage.getItem("localResolve")) {
         document.getElementById("localResolveCheckbox").checked = JSON.parse(localStorage.getItem("localResolve"));
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const trace = urlParams.get('trace');
+    if (trace) {
+        document.getElementById('params').value = trace;
+        try {
+            await startNexttrace();
+            console.log('startNexttrace function has completed');
+        } catch (error) {
+            console.error('An error occurred:', error);
+        }
     }
 });
