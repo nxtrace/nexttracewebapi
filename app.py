@@ -58,10 +58,13 @@ Thread(target=check_timeouts, daemon=True).start()
 
 
 class OutputMonitor:
-    def __init__(self, process):
+    def __init__(self, process, socketio, sid, options):
         self.process = process
         self.last_output_time = time.time()
         self.lock = threading.Lock()
+        self.socketio = socketio
+        self.sid = sid
+        self.options = options
 
     def monitor(self, line):
         with self.lock:
@@ -73,8 +76,11 @@ class OutputMonitor:
                 time.sleep(1)
                 with self.lock:
                     if time.time() - self.last_output_time > timeout:
-                        os.write(self.process.stdin.fileno(), b'\n')
-                        self.process.stdin.flush()
+                        if len(self.options) > 0:
+                            logging.debug(f"in start_newline_inserter: {self.options}")
+                            self.socketio.emit('nexttrace_options', self.options, room=self.sid)
+                            self.options = []
+                            break
 
         t = Thread(target=insert_newline, daemon=True)
         t.start()
@@ -106,16 +112,16 @@ class NextTraceTask:
             [self.nexttrace_path] + self.params.split() + fixParam.split(),
             stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True, env=process_env, bufsize=1
         )
-        output_monitor = OutputMonitor(self.process)
-        output_monitor.start_newline_inserter(timeout=5)  # 5 seconds
+        output_monitor = OutputMonitor(self.process, self.socketio, self.sid, options)
+        output_monitor_flag = True
 
         for line in iter(self.process.stdout.readline, ''):
-            if re.match(r'^Your Option:.*$', line):
-                logging.debug(f"nexttrace_options: {options}")
-                self.socketio.emit('nexttrace_options', options, room=self.sid)
-                options = []
             if re.match(r'^\d+\..*$', line):
                 options.append(line.split()[1])
+                if output_monitor_flag:
+                    output_monitor.start_newline_inserter(timeout=0.1)  # 0.1 seconds
+                    output_monitor_flag = False
+
             elif re.match(r'^\d+\|', line):
                 line_split = line.split('|')
                 res = line_split[0:5] + [''.join(line_split[5:9])] + line_split[9:10]
