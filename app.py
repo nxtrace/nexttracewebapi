@@ -217,7 +217,7 @@ def start_nexttrace(data):
                 if pattern.match(device) and len(device) < 128:
                     params += f' --dev {device}'
             dataProvider = data.get('dataProvider')
-            if dataProvider:
+            if dataProvider and len(dataProvider) < 16:
                 dataProvider = dataProvider.strip()
                 allowedList = [
                     "Ip2region", "ip2region", "IP.SB", "ip.sb", "IPInfo", "ipinfo",
