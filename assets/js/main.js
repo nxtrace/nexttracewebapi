@@ -404,6 +404,7 @@ function getFormattedSettings() {
         maxHop: getValueFromLocalStorage("maxHop"),
         minHop: getValueFromLocalStorage("minHop"),
         port: getValueFromLocalStorage("port"),
+        dataProvider: getValueFromLocalStorage("dataProvider"),
         device: getValueFromLocalStorage("device")
     };
 
@@ -518,7 +519,6 @@ function resolveDomain(domain) {
     });
 }
 
-
 function parseDomain(domain) {
     //判断domian 是不是IPv4
     if ((domain.match(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/)) || (domain.match(/^[a-fA-F0-9:]+$/))) {
@@ -558,3 +558,54 @@ function parseDomain(domain) {
         }
     });
 }
+
+function deviceValidateInput() {
+    var allowedPattern = '^[a-zA-Z]*\\d*$';
+
+    var inputElement = document.getElementById("devInput");
+    var errorMessageElement = document.getElementById("dev-error-message");
+
+    if (inputElement.value === "") {
+        errorMessageElement.style.display = "none";
+        return true;
+    }
+
+    if (!inputElement.value.match(allowedPattern)) {
+        // Input value is not in the allowed list
+        errorMessageElement.style.display = "inline";
+        inputElement.value = ""; // Optionally clear the input
+        return false;
+    } else {
+        // Input is valid, hide the error message if it's showing
+        errorMessageElement.style.display = "none";
+        return true;
+    }
+}
+
+function dataProviderValidateInput() {
+    var allowedValues = [
+        "Ip2region", "ip2region", "IP.SB", "ip.sb", "IPInfo", "ipinfo",
+        "IPInsight", "ipinsight", "IPAPI.com", "ip-api.com", "IPInfoLocal",
+        "ipinfolocal", "chunzhen", "LeoMoeAPI", "leomoeapi", "disable-geoip"
+    ];
+
+    var inputElement = document.getElementById("dataProvider");
+    var errorMessageElement = document.getElementById("dp-error-message");
+
+    if (inputElement.value === "") {
+        errorMessageElement.style.display = "none";
+        return true;
+    }
+
+    if (allowedValues.indexOf(inputElement.value) === -1) {
+        // Input value is not in the allowed list
+        errorMessageElement.style.display = "inline";
+        inputElement.value = ""; // Optionally clear the input
+        return false;
+    } else {
+        // Input is valid, hide the error message if it's showing
+        errorMessageElement.style.display = "none";
+        return true;
+    }
+}
+

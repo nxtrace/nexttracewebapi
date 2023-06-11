@@ -36,7 +36,11 @@ packetSizeInput.addEventListener("input", function () {
 
 saveBtn.addEventListener("click", function (event) {
     event.preventDefault(); // 阻止按钮默认的提交行为
-
+    var stat0 = deviceValidateInput();
+    var stat1 = dataProviderValidateInput();
+    if (!(stat0 && stat1)) {
+        return;
+    }
     // Save settings to localStorage
     localStorage.setItem("language", document.getElementById("language").value);
     localStorage.setItem("intervalSeconds", document.getElementById("intervalTimeInput").value);
@@ -45,6 +49,7 @@ saveBtn.addEventListener("click", function (event) {
     localStorage.setItem("minHop", document.getElementById("minHopInput").value);
     localStorage.setItem("port", document.getElementById("portInput").value);
     localStorage.setItem("device", document.getElementById("devInput").value);
+    localStorage.setItem("dataProvider", document.getElementById("dataProvider").value);
     localStorage.setItem("localResolve", document.getElementById("localResolveCheckbox").checked);
 
     settingMenu.style.display = "none";
@@ -86,6 +91,9 @@ document.addEventListener("DOMContentLoaded", async function (event) {
     }
     if (localStorage.getItem("device")) {
         document.getElementById("devInput").value = localStorage.getItem("device");
+    }
+    if (localStorage.getItem("dataProvider")) {
+        document.getElementById("dataProvider").value = localStorage.getItem("dataProvider");
     }
     if (localStorage.getItem("localResolve")) {
         document.getElementById("localResolveCheckbox").checked = JSON.parse(localStorage.getItem("localResolve"));

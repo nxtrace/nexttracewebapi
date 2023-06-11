@@ -60,12 +60,27 @@
         <br>
         <label for="devInput">Device:</label>
         <input type="text" id="devInput" placeholder="Device">
+        <span id="dev-error-message" style="color:red; display:none;">Invalid Input</span>
+        <br>
+        <label for="dataProvider">Data Provider:</label>
+        <input type="text" list="dataProviders" id="dataProvider" placeholder="dataProvider">
+        <datalist id="dataProviders">
+            <option value="LeoMoeAPI">
+            <option value="Ip2region">
+            <option value="IP.SB">
+            <option value="IPInfo">
+            <option value="IPInsight">
+            <option value="ip-api.com">
+            <option value="IPInfoLocal">
+            <option value="Chunzhen">
+            <option value="Disable-geoip">
+        </datalist>
+        <span id="dp-error-message" style="color:red; display:none;">Invalid Input</span>
         <br>
         <label for="localResolveCheckbox" class="block-container">
             <input type="checkbox" id="localResolveCheckbox" checked>
             LOCAL RESOLVE
         </label>
-        <!--若不使用本地解析，将会在域名有多IP的时候卡死-->
         <br>
         <button id="saveBtn">Save</button>
     </div>

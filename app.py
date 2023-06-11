@@ -216,6 +216,16 @@ def start_nexttrace(data):
                 pattern = re.compile(r'^[a-zA-Z]*\d*$')
                 if pattern.match(device) and len(device) < 128:
                     params += f' --dev {device}'
+            dataProvider = data.get('dataProvider')
+            if dataProvider:
+                dataProvider = dataProvider.strip()
+                allowedList = [
+                    "Ip2region", "ip2region", "IP.SB", "ip.sb", "IPInfo", "ipinfo",
+                    "IPInsight", "ipinsight", "IPAPI.com", "ip-api.com", "IPInfoLocal",
+                    "ipinfolocal", "chunzhen", "LeoMoeAPI", "leomoeapi", "disable-geoip"
+                ]
+                if dataProvider in allowedList:
+                    params += f' --data-provider {dataProvider}'
 
             # 创建任务
             task = NextTraceTask(request.sid, socketio, params, nexttrace_path)
