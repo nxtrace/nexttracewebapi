@@ -504,7 +504,17 @@
                     }
                 }).catch(() => {
                     // 在此处显示一个错误消息
-                    alert('无法解析域名，请检查你与DOH服务器的连接或尝试使用使用SERVER RESOLVE模式(您可以在SETTINGS中关闭LOCAL RESOLVE).');
+                    alert('无法解析域名，请检查你与DOH服务器的连接或尝试使用使用SERVER RESOLVE模式.');
+                    // 弹出确认对话框
+                    var userChoice = confirm("是否切换为 SERVER RESOLVE 模式？");
+                    // 根据用户选择执行操作
+                    if (userChoice) {
+                        // 用户点击了 “是”
+                        localStorage.setItem("localResolve", "false");
+                        document.getElementById("localResolveCheckbox").checked = JSON.parse(localStorage.getItem("localResolve"));
+                    } else {
+                        alert('RESOLVE模式您稍后可以在Settings中更改.');
+                    }
                 });
             });
         }
