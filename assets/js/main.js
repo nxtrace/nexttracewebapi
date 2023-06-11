@@ -160,6 +160,7 @@ function mergeDataAndAddOrUpdateRow(table, cells) {
             data.lossPktSum++;
             lossPktRateCell.textContent = String(Math.round((100 * data.lossPktSum / (data.lossPktSum + data.count)) * 10) / 10);
             lossPktRateCell.style.backgroundColor = getLossColor(100 * data.lossPktSum / (data.lossPktSum + data.count));
+            sentCell.textContent = data.count + data.lossPktSum;
         }
 
         var rdnsCell = rowToUpdate.querySelector('.rdns');
