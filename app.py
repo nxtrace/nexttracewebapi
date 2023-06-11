@@ -205,4 +205,9 @@ def stop_nexttrace():
 
 
 if __name__ == '__main__':
-    socketio.run(app, '127.0.0.1', 35000)
+    # 从环境变量中读取主机和端口，如果环境变量不存在，使用默认值'127.0.0.1'和35000
+    host = os.environ.get('TEST_HOST', '127.0.0.1')
+    port = int(os.environ.get('TEST_PORT', 35000))
+
+    # 使用从环境变量中读取的主机和端口运行应用
+    socketio.run(app, host, port)
