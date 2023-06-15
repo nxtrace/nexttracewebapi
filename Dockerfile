@@ -5,7 +5,7 @@ RUN apk update && apk add --no-cache git
 
 # 克隆NEXTTRACE源代码并编译
 WORKDIR /build
-RUN git clone --branch v1.1.7-1 --depth 1 https://github.com/sjlleo/nexttrace-core.git . && \
+RUN git clone --branch v1.1.7-2 --depth 1 https://github.com/tsosunchia/nexttrace-core.git . && \
     go clean -modcache && \
     go mod download && \
     go build -o nexttrace .
