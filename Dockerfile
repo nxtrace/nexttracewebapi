@@ -1,4 +1,4 @@
-FROM golang1.20.7-alpine3.18 AS builder
+FROM golang:1.21.0-alpine3.18 AS builder
 
 # 安装所需的软件包
 RUN apk update && apk add --no-cache git
