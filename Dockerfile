@@ -10,7 +10,7 @@ RUN git clone --branch v1.1.7-3-2 --depth 1 https://github.com/nxtrace/Ntrace-V1
     go mod download && \
     go build -o nexttrace .
 
-FROM alpine:3
+FROM ubuntu:22.04
 
 # 安装所需的软件包
 RUN apk update && apk add --no-cache python3 py3-pip nginx
