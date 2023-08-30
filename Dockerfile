@@ -13,7 +13,7 @@ RUN git clone --branch v1.1.7-3-2 --depth 1 https://github.com/nxtrace/Ntrace-V1
 FROM ubuntu:22.04
 
 # 安装所需的软件包
-RUN apk update && apk add --no-cache python3 py3-pip nginx
+RUN apt-get update && apt-get install python3-pip nginx
 
 # 安装Python依赖包
 COPY requirements.txt /tmp/requirements.txt
