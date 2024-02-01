@@ -1,11 +1,11 @@
-FROM golang:1.21.0-alpine3.18 AS builder
+FROM golang:alpine AS builder
 
 # 安装所需的软件包
 RUN apk update && apk add --no-cache git
 
 # 克隆NEXTTRACE源代码并编译
 WORKDIR /build
-RUN git clone --branch v1.2.7 --depth 1 https://github.com/nxtrace/Ntrace-V1.git . && \
+RUN git clone https://github.com/nxtrace/Ntrace-core.git . && \
     go clean -modcache && \
     go mod download && \
     go build -o nexttrace .
