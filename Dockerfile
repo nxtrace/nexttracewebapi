@@ -8,7 +8,7 @@ WORKDIR /build
 RUN git clone https://github.com/nxtrace/Ntrace-core.git . && \
     go clean -modcache && \
     go mod download && \
-    go build -o nexttrace .
+    go build -trimpath -ldflags '-w -s -checklinkname=0' -o nexttrace .
 
 FROM ubuntu:22.04
 
