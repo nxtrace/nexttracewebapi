@@ -48,11 +48,19 @@ def check_timeouts():
 def stop_nexttrace_for_sid(sid):
     task = clients.get(sid)
     if task and task.process:
+        logging.info(f"Attempting to terminate process for client {sid}")
         task.process.terminate()
+        try:
+            task.process.wait(timeout=1)
+            logging.info(f"Process terminated successfully for client {sid}")
+        except subprocess.TimeoutExpired:
+            logging.warning(f"Process termination timeout for client {sid}, forcing kill")
+            task.process.kill()
+            logging.info(f"Process killed forcefully for client {sid}")
         socketio.emit('nexttrace_complete', room=sid)
         if sid in clients:
             del clients[sid]
-            logging.debug(f"Client {sid} removed from clients dictionary after process termination")
+            logging.info(f"Client {sid} removed from clients dictionary after process termination")
 
 
 Thread(target=check_timeouts, daemon=True).start()
@@ -247,6 +255,7 @@ def start_nexttrace(data):
 
 @socketio.on('stop_nexttrace')
 def stop_nexttrace():
+    logging.info(f"Client {request.sid} stop nexttrace")
     stop_nexttrace_for_sid(request.sid)
 
 
